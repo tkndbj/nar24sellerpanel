@@ -106,21 +106,21 @@ export default function DashboardPage() {
         </header>
 
         {/* Top-level Metrics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6">
           {metricCards.map((card) => (
             <div
               key={card.label}
-              className="relative bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-200 overflow-hidden"
+              className="relative bg-white rounded-2xl shadow-lg p-3 sm:p-6 hover:shadow-xl transition-shadow duration-200 overflow-hidden text-center sm:text-left"
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500" />
-              <card.icon className="w-8 h-8 text-indigo-600 mb-4" />
-              <h3 className="text-sm font-medium text-gray-500">
+              <card.icon className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 mb-2 sm:mb-4 mx-auto sm:mx-0" />
+              <h3 className="text-xs sm:text-sm font-medium text-gray-500">
                 {card.label}
               </h3>
-              <p className="mt-2 text-3xl font-bold text-gray-900">
+              <p className="mt-1 sm:mt-2 text-xl sm:text-3xl font-bold text-gray-900">
                 {loadingMetrics ? (
                   <svg
-                    className="animate-spin h-6 w-6 text-indigo-600"
+                    className="animate-spin h-4 w-4 sm:h-6 sm:w-6 text-indigo-600 mx-auto sm:mx-0"
                     viewBox="0 0 24 24"
                   >
                     <circle
@@ -150,18 +150,17 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">
             Overview
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-6">
             {overviewCards.map((card) => (
               <Link
                 key={card.label}
                 href={card.href}
-                className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-200 hover:bg-gray-50"
+                className="bg-white rounded-2xl shadow-lg p-3 sm:p-6 hover:shadow-xl transition-shadow duration-200 hover:bg-gray-50 text-center sm:text-left"
               >
-                <card.icon className="w-8 h-8 text-indigo-600 mb-4" />
-                <h3 className="text-sm font-medium text-gray-500">
+                <card.icon className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 mb-2 sm:mb-4 mx-auto sm:mx-0" />
+                <h3 className="text-xs sm:text-sm font-medium text-gray-500">
                   {card.label}
                 </h3>
-                <p className="mt-2 text-3xl font-bold text-gray-900">—</p>
               </Link>
             ))}
           </div>
