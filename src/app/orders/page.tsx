@@ -94,7 +94,7 @@ export default function OrdersPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-24">
         <p className="text-gray-600 text-lg font-medium">
-          Select a shop to view its orders.
+          Siparişleri görüntülemek için bir mağaza seçin.
         </p>
       </div>
     );
@@ -121,7 +121,9 @@ export default function OrdersPage() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <p className="text-gray-600 text-lg font-medium">Loading orders...</p>
+          <p className="text-gray-600 text-lg font-medium">
+            Siparişler yükleniyor...
+          </p>
         </div>
       </div>
     );
@@ -129,7 +131,7 @@ export default function OrdersPage() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-24">
-        <p className="text-red-500 text-lg font-medium">Error: {error}</p>
+        <p className="text-red-500 text-lg font-medium">Hata: {error}</p>
       </div>
     );
   }
@@ -137,46 +139,48 @@ export default function OrdersPage() {
   return (
     <div className="bg-gray-50 min-h-screen w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 pt-24">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Orders — {selectedShop.name}
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">
+          Siparişler — {selectedShop.name}
         </h1>
 
         {orders.length === 0 ? (
           <p className="text-gray-600 text-lg font-medium">
-            No orders found for this shop.
+            Bu mağaza için sipariş bulunamadı.
           </p>
         ) : (
-          <div className="overflow-x-auto bg-white rounded-2xl shadow-lg sm:rounded-2xl">
+          <div className="overflow-x-auto bg-white rounded-none sm:rounded-2xl shadow-lg w-full">
             <table className="min-w-full table-auto">
               <thead>
                 <tr className="bg-gray-100 text-left">
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                    Product
+                    Ürün
                   </th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                    Buyer
+                    Alıcı
                   </th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                    Color
+                    Renk
                   </th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                    Size
+                    Beden
                   </th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                    Qty
+                    Adet
                   </th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                    Amount
+                    Tutar
                   </th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                    Date
+                    Tarih
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((o, idx) => {
                   const date = o.timestamp
-                    ? new Date(o.timestamp.seconds * 1000).toLocaleString()
+                    ? new Date(o.timestamp.seconds * 1000).toLocaleString(
+                        "tr-TR"
+                      )
                     : "-";
                   const buyerName = o.buyerId ? buyerMap[o.buyerId] : "-";
                   const thumb = o.selectedColorImage || o.productImage || "";
@@ -193,7 +197,7 @@ export default function OrdersPage() {
                         {thumb ? (
                           <Image
                             src={thumb}
-                            alt={o.productName || "Product"}
+                            alt={o.productName || "Ürün"}
                             width={40}
                             height={40}
                             className="object-cover rounded-md shadow-sm"

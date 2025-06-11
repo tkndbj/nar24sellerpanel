@@ -240,7 +240,7 @@ function ProductDetailContent() {
       <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-6">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
           {/* Images Section */}
-          <div className="space-y-4 px-4 sm:px-0">
+          <div className="space-y-4 px-0 sm:px-0">
             <div className="relative group">
               <div className="aspect-square overflow-hidden rounded-none sm:rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 shadow-xl">
                 {selectedImage ? (
@@ -265,7 +265,7 @@ function ProductDetailContent() {
             </div>
 
             {thumbnails.length > 0 && (
-              <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex space-x-3 overflow-x-auto pb-2 px-4 sm:px-0 scrollbar-hide">
                 {thumbnails.map((url, i) => (
                   <button
                     key={i}
@@ -275,6 +275,7 @@ function ProductDetailContent() {
                         ? "ring-3 ring-indigo-500 shadow-lg scale-105"
                         : "ring-2 ring-gray-200 hover:ring-indigo-300 hover:shadow-md"
                     }`}
+                    style={{ margin: "0 2px" }}
                   >
                     <Image
                       src={url}
@@ -348,7 +349,7 @@ function ProductDetailContent() {
             </div>
 
             {/* Sale Preferences */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-5 sm:p-6">
+            <div className="bg-white/70 backdrop-blur-sm rounded-none sm:rounded-2xl shadow-lg border border-gray-200/50 p-5 sm:p-6 -mx-4 sm:mx-0">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
                 <TrendingUp className="w-5 h-5 text-indigo-600" />
                 <span>Satış Tercihleri</span>
@@ -386,8 +387,8 @@ function ProductDetailContent() {
         </div>
 
         {/* Orders Section */}
-        <div className="mt-12 px-4 sm:px-0">
-          <div className="rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
+        <div className="mt-12 px-0 sm:px-0">
+          <div className="rounded-none sm:rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
             <div className="bg-white/90 backdrop-blur-sm p-5 sm:p-6 border-b border-gray-200/50">
               <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
                 <Calendar className="w-5 h-5 text-indigo-600" />
