@@ -43,6 +43,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   // Fetch initial page
   const fetchInitial = useCallback(async () => {
@@ -50,6 +51,7 @@ export default function ProductsPage() {
     setLoading(true);
     setProducts([]);
     setLastDoc(null);
+    setImageErrors(new Set()); // Reset image errors
 
     const q = query(
       collection(db, "shop_products"),
@@ -103,6 +105,31 @@ export default function ProductsPage() {
     );
   }, [products, searchQuery]);
 
+  // Helper function to get valid image URL
+  const getValidImageUrl = (product: Product): string => {
+    const urls = [
+      product.imageUrl,
+      ...(product.imageUrls || []),
+      ...Object.values(product.colorImages || {}).flat(),
+    ].filter(Boolean);
+
+    // Return first URL that appears to be valid and hasn't errored
+    return (
+      urls.find(
+        (url) =>
+          url &&
+          url.trim().length > 0 &&
+          url.startsWith("http") &&
+          !imageErrors.has(url)
+      ) || ""
+    );
+  };
+
+  // Handle image load error
+  const handleImageError = (url: string) => {
+    setImageErrors((prev) => new Set([...prev, url]));
+  };
+
   if (!selectedShop) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-20">
@@ -125,11 +152,11 @@ export default function ProductsPage() {
             >
               <ArrowLeft className="w-6 h-6 text-gray-600" />
             </button>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
               {selectedShop.name} — Products
             </h1>
           </div>
-          <div className="mt-6 flex items-center space-x-4">
+          <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             {/* Search */}
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -157,7 +184,10 @@ export default function ProductsPage() {
             </div>
 
             {/* Ürün Listele button */}
-            <FancyButton href="/listproduct" className="whitespace-nowrap">
+            <FancyButton
+              href="/listproduct"
+              className="whitespace-nowrap w-full sm:w-auto"
+            >
               Ürün Listele
             </FancyButton>
           </div>
@@ -194,33 +224,32 @@ export default function ProductsPage() {
                 No products found.
               </p>
             ) : (
-              <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filtered.map((prod) => {
-                  const displayImage =
-                    prod.imageUrl ||
-                    prod.imageUrls?.[0] ||
-                    Object.values(prod.colorImages ?? {})[0]?.[0] ||
-                    "";
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                {filtered.map((prod, index) => {
+                  const displayImage = getValidImageUrl(prod);
 
                   return (
                     <li key={prod.id}>
                       <Link
                         href={`/productdetail?productId=${prod.id}`}
-                        className="flex items-center bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200 p-4"
+                        className="flex items-center bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200 p-3 sm:p-4 min-h-[100px] sm:min-h-[120px]"
                       >
-                        <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                          {displayImage ? (
+                        {/* Image Section - Left side */}
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 relative">
+                          {displayImage && !imageErrors.has(displayImage) ? (
                             <Image
                               src={displayImage}
                               alt={prod.productName}
-                              width={96}
-                              height={96}
-                              className="w-full h-full object-cover"
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
+                              priority={index < 4} // Add priority for first 4 images (above fold)
+                              onError={() => handleImageError(displayImage)}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <svg
-                                className="w-10 h-10 text-gray-300"
+                                className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-gray-300"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -229,17 +258,19 @@ export default function ProductsPage() {
                             </div>
                           )}
                         </div>
-                        <div className="ml-4 flex-1">
-                          <h2 className="text-lg font-semibold text-gray-900 truncate">
+
+                        {/* Content Section - Right side */}
+                        <div className="ml-3 sm:ml-4 flex-1 min-w-0 flex flex-col justify-center">
+                          <h2 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 truncate leading-tight">
                             {prod.productName}
                           </h2>
                           {prod.brandModel && (
-                            <p className="mt-1 text-sm text-gray-500">
+                            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 truncate">
                               {prod.brandModel}
                             </p>
                           )}
                           {prod.price != null && (
-                            <p className="mt-2 text-lg font-bold text-indigo-600">
+                            <p className="mt-1 sm:mt-2 text-sm sm:text-base lg:text-lg font-bold text-indigo-600">
                               {prod.price.toFixed(0)} TL
                             </p>
                           )}
