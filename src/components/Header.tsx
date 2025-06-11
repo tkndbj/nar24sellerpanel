@@ -127,37 +127,20 @@ export default function Header() {
           </Link>
 
           {/* Right controls */}
-          <div className="flex items-center space-x-3 xl:space-x-4">
-            {/* Dashboard action buttons - Smaller on medium screens */}
-            <div className="flex items-center space-x-2">
-              <FancyButton
-                onClick={() => setIsDrawerOpen(true)}
-                className="text-xs xl:text-sm px-3 xl:px-4 py-2"
-              >
+          <div className="flex items-center space-x-4">
+            {/* Dashboard action buttons - Original FancyButton styling */}
+            <div className="hidden lg:flex items-center space-x-2">
+              <FancyButton onClick={() => setIsDrawerOpen(true)}>
                 Satıcı Bilgileri
               </FancyButton>
-              <FancyButton
-                href="/dashboard/products"
-                className="text-xs xl:text-sm px-3 xl:px-4 py-2"
-              >
+              <FancyButton href="/dashboard/products">
                 Kullanıcı Ayarları
               </FancyButton>
-              <FancyButton
-                href="/dashboard/stock"
-                className="text-xs xl:text-sm px-3 xl:px-4 py-2"
-              >
+              <FancyButton href="/dashboard/stock">
                 Nakliyat Detayları
               </FancyButton>
-              <FancyButton
-                href="/dashboard/ads"
-                className="text-xs xl:text-sm px-3 xl:px-4 py-2"
-              >
-                Vergi Detayları
-              </FancyButton>
-              <FancyButton
-                href="/dashboard/orders"
-                className="text-xs xl:text-sm px-3 xl:px-4 py-2"
-              >
+              <FancyButton href="/dashboard/ads">Vergi Detayları</FancyButton>
+              <FancyButton href="/dashboard/orders">
                 Dükkan Görselleri
               </FancyButton>
             </div>
@@ -229,66 +212,60 @@ export default function Header() {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-            onClick={closeMobileMenu}
-          />
-          <div className="fixed top-16 right-4 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 lg:hidden">
-            <div className="p-4 space-y-2">
-              <FancyButton
-                onClick={() => {
-                  setIsDrawerOpen(true);
-                  closeMobileMenu();
-                }}
-                className="w-full justify-center text-sm"
-              >
-                Satıcı Bilgileri
-              </FancyButton>
-              <FancyButton
-                href="/dashboard/products"
-                className="w-full justify-center text-sm"
-                onClick={closeMobileMenu}
-              >
-                Kullanıcı Ayarları
-              </FancyButton>
-              <FancyButton
-                href="/dashboard/stock"
-                className="w-full justify-center text-sm"
-                onClick={closeMobileMenu}
-              >
-                Nakliyat Detayları
-              </FancyButton>
-              <FancyButton
-                href="/dashboard/ads"
-                className="w-full justify-center text-sm"
-                onClick={closeMobileMenu}
-              >
-                Vergi Detayları
-              </FancyButton>
-              <FancyButton
-                href="/dashboard/orders"
-                className="w-full justify-center text-sm"
-                onClick={closeMobileMenu}
-              >
-                Dükkan Görselleri
-              </FancyButton>
+        <div className="fixed top-16 right-4 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 lg:hidden">
+          <div className="p-4 space-y-2">
+            <FancyButton
+              onClick={() => {
+                setIsDrawerOpen(true);
+                closeMobileMenu();
+              }}
+              className="w-full justify-center text-sm"
+            >
+              Satıcı Bilgileri
+            </FancyButton>
+            <FancyButton
+              href="/dashboard/products"
+              className="w-full justify-center text-sm"
+              onClick={closeMobileMenu}
+            >
+              Kullanıcı Ayarları
+            </FancyButton>
+            <FancyButton
+              href="/dashboard/stock"
+              className="w-full justify-center text-sm"
+              onClick={closeMobileMenu}
+            >
+              Nakliyat Detayları
+            </FancyButton>
+            <FancyButton
+              href="/dashboard/ads"
+              className="w-full justify-center text-sm"
+              onClick={closeMobileMenu}
+            >
+              Vergi Detayları
+            </FancyButton>
+            <FancyButton
+              href="/dashboard/orders"
+              className="w-full justify-center text-sm"
+              onClick={closeMobileMenu}
+            >
+              Dükkan Görselleri
+            </FancyButton>
 
-              <hr className="my-3 border-gray-200" />
+            <hr className="my-3 border-gray-200" />
 
-              <button
-                onClick={() => {
-                  handleLogout();
-                  closeMobileMenu();
-                }}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Çıkış Yap</span>
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                handleLogout();
+                closeMobileMenu();
+              }}
+              className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Çıkış Yap</span>
+            </button>
           </div>
-        </>
+        </div>
       )}
 
       <SellerInfoDrawer
