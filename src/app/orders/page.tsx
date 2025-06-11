@@ -92,7 +92,7 @@ export default function OrdersPage() {
 
   if (!selectedShop) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-20">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-24">
         <p className="text-gray-600 text-lg font-medium">
           Select a shop to view its orders.
         </p>
@@ -101,7 +101,7 @@ export default function OrdersPage() {
   }
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-20">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-24">
         <div className="flex items-center space-x-2">
           <svg
             className="animate-spin h-5 w-5 text-indigo-600"
@@ -128,99 +128,105 @@ export default function OrdersPage() {
   }
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-20">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-24">
         <p className="text-red-500 text-lg font-medium">Error: {error}</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gray-50 min-h-screen pt-20">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">
-        Orders — {selectedShop.name}
-      </h1>
+    <div className="bg-gray-50 min-h-screen w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 pt-24">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          Orders — {selectedShop.name}
+        </h1>
 
-      {orders.length === 0 ? (
-        <p className="text-gray-600 text-lg font-medium">
-          No orders found for this shop.
-        </p>
-      ) : (
-        <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
-          <table className="min-w-full table-auto">
-            <thead>
-              <tr className="bg-gray-100 text-left">
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                  Product
-                </th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                  Buyer
-                </th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                  Color
-                </th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                  Size
-                </th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                  Qty
-                </th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                  Amount
-                </th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                  Date
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((o, idx) => {
-                const date = o.timestamp
-                  ? new Date(o.timestamp.seconds * 1000).toLocaleString()
-                  : "-";
-                const buyerName = o.buyerId ? buyerMap[o.buyerId] : "-";
-                const thumb = o.selectedColorImage || o.productImage || "";
-                return (
-                  <tr
-                    key={o.id}
-                    className={`transition-colors duration-200 hover:bg-gray-50 ${
-                      idx < orders.length - 1 ? "border-b border-gray-200" : ""
-                    }`}
-                  >
-                    <td className="px-6 py-4 text-sm text-gray-800 flex items-center space-x-3">
-                      {thumb ? (
-                        <Image
-                          src={thumb}
-                          alt={o.productName || "Product"}
-                          width={40}
-                          height={40}
-                          className="object-cover rounded-md shadow-sm"
-                        />
-                      ) : null}
-                      <span className="font-medium">{o.productName}</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-800">
-                      {buyerName}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-800">
-                      {o.selectedColor || "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-800">
-                      {o.selectedSize || "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-800">
-                      {o.quantity ?? "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-800">
-                      {(o.price ?? 0).toFixed(0)} TL
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-800">{date}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+        {orders.length === 0 ? (
+          <p className="text-gray-600 text-lg font-medium">
+            No orders found for this shop.
+          </p>
+        ) : (
+          <div className="overflow-x-auto bg-white rounded-2xl shadow-lg sm:rounded-2xl">
+            <table className="min-w-full table-auto">
+              <thead>
+                <tr className="bg-gray-100 text-left">
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                    Product
+                  </th>
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                    Buyer
+                  </th>
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                    Color
+                  </th>
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                    Size
+                  </th>
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                    Qty
+                  </th>
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                    Amount
+                  </th>
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                    Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((o, idx) => {
+                  const date = o.timestamp
+                    ? new Date(o.timestamp.seconds * 1000).toLocaleString()
+                    : "-";
+                  const buyerName = o.buyerId ? buyerMap[o.buyerId] : "-";
+                  const thumb = o.selectedColorImage || o.productImage || "";
+                  return (
+                    <tr
+                      key={o.id}
+                      className={`transition-colors duration-200 hover:bg-gray-50 ${
+                        idx < orders.length - 1
+                          ? "border-b border-gray-200"
+                          : ""
+                      }`}
+                    >
+                      <td className="px-6 py-4 text-sm text-gray-800 flex items-center space-x-3">
+                        {thumb ? (
+                          <Image
+                            src={thumb}
+                            alt={o.productName || "Product"}
+                            width={40}
+                            height={40}
+                            className="object-cover rounded-md shadow-sm"
+                          />
+                        ) : null}
+                        <span className="font-medium">{o.productName}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-800">
+                        {buyerName}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-800">
+                        {o.selectedColor || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-800">
+                        {o.selectedSize || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-800">
+                        {o.quantity ?? "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-800">
+                        {(o.price ?? 0).toFixed(0)} TL
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-800">
+                        {date}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
