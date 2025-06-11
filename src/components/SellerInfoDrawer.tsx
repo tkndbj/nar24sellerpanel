@@ -173,9 +173,9 @@ const SellerInfoDrawer: React.FC<SellerInfoDrawerProps> = ({
         onClick={onClose}
       />
 
-      {/* Modern Drawer */}
+      {/* Modern Drawer - Full width on mobile, 96 on desktop */}
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-gradient-to-br from-white via-gray-50 to-white shadow-2xl z-50 transform transition-all duration-500 ease-out ${
+        className={`fixed top-0 right-0 h-full w-full md:w-96 bg-gradient-to-br from-white via-gray-50 to-white shadow-2xl z-50 transform transition-all duration-500 ease-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } flex flex-col border-l border-gray-100`}
       >
@@ -294,18 +294,41 @@ const SellerInfoDrawer: React.FC<SellerInfoDrawerProps> = ({
                   </div>
                 </div>
               ) : (
-                /* Edit Mode */
+                /* Edit Mode or No Seller Info */
                 <div className="space-y-6">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Edit2 className="w-5 h-5 text-blue-600" />
+                  {/* Empty State Header - Always show when no seller info */}
+                  {!sellerInfo && (
+                    <div className="flex flex-col items-center text-center mb-8">
+                      <div className="p-4 bg-gray-100 rounded-full mb-4">
+                        <div className="w-20 h-20 rounded-lg flex items-center justify-center">
+                          <img
+                            src="/payment1.png"
+                            alt="Payment"
+                            className="w-20 h-20 object-contain"
+                          />
+                        </div>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                        Satıcı Bilgileri Yok
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Ürün listeleyebilmek için satıcı bilgilerinizi
+                        ekleyiniz.
+                      </p>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">
-                      {sellerInfo
-                        ? "Edit Information"
-                        : "Create Seller Profile"}
-                    </h3>
-                  </div>
+                  )}
+
+                  {/* Form Header - Only show when editing existing info */}
+                  {sellerInfo && editing && (
+                    <div className="flex items-center space-x-3 mb-6">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Edit2 className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-800">
+                        Edit Information
+                      </h3>
+                    </div>
+                  )}
 
                   <div className="space-y-5">
                     {/* Phone Input */}
@@ -319,7 +342,7 @@ const SellerInfoDrawer: React.FC<SellerInfoDrawerProps> = ({
                         value={form.phone}
                         onChange={handleChange}
                         placeholder="Enter phone number"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300 placeholder:text-gray-400 md:placeholder:text-gray-300"
                       />
                     </div>
 
@@ -335,7 +358,12 @@ const SellerInfoDrawer: React.FC<SellerInfoDrawerProps> = ({
                         onChange={handleChange}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300"
                       >
-                        <option value="">Select your region</option>
+                        <option
+                          value=""
+                          className="text-gray-400 md:text-gray-300"
+                        >
+                          Select your region
+                        </option>
                         {regionsList.map((r: string) => (
                           <option key={r} value={r}>
                             {r}
@@ -355,7 +383,7 @@ const SellerInfoDrawer: React.FC<SellerInfoDrawerProps> = ({
                         value={form.address}
                         onChange={handleChange}
                         placeholder="Enter full address"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300 placeholder:text-gray-400 md:placeholder:text-gray-300"
                       />
                     </div>
 
@@ -370,7 +398,7 @@ const SellerInfoDrawer: React.FC<SellerInfoDrawerProps> = ({
                         value={form.ibanOwnerName}
                         onChange={handleChange}
                         placeholder="First name"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300 placeholder:text-gray-400 md:placeholder:text-gray-300"
                       />
                     </div>
 
@@ -385,7 +413,7 @@ const SellerInfoDrawer: React.FC<SellerInfoDrawerProps> = ({
                         value={form.ibanOwnerSurname}
                         onChange={handleChange}
                         placeholder="Last name"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300 placeholder:text-gray-400 md:placeholder:text-gray-300"
                       />
                     </div>
 
@@ -400,7 +428,7 @@ const SellerInfoDrawer: React.FC<SellerInfoDrawerProps> = ({
                         value={form.iban}
                         onChange={handleChange}
                         placeholder="TR00 0000 0000 0000 0000 0000 00"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300 font-mono"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300 font-mono placeholder:text-gray-400 md:placeholder:text-gray-300"
                       />
                     </div>
                   </div>
@@ -446,25 +474,6 @@ const SellerInfoDrawer: React.FC<SellerInfoDrawerProps> = ({
                       )}
                     </button>
                   </div>
-                </div>
-              )}
-
-              {/* Empty State */}
-              {!sellerInfo && !editing && (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <div className="p-4 bg-gray-100 rounded-full mb-4">
-                    <img
-                      src="/payment1.png"
-                      alt="Payment"
-                      className="w-20 h-20"
-                    />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                    Satıcı Bilgileri Yok
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Ürün listeleyebilmek için satıcı bilgilerinizi ekleyiniz.
-                  </p>
                 </div>
               )}
             </div>

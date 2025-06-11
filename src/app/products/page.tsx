@@ -156,9 +156,9 @@ export default function ProductsPage() {
               {selectedShop.name} — Products
             </h1>
           </div>
-          <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+          <div className="mt-6 flex items-center space-x-3">
             {/* Search */}
-            <div className="relative flex-1">
+            <div className="relative w-64 sm:w-80">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg
                   className="h-5 w-5 text-gray-400"
@@ -179,14 +179,14 @@ export default function ProductsPage() {
                 placeholder="Search products…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-gray-500 sm:placeholder-gray-400"
               />
             </div>
 
             {/* Ürün Listele button */}
             <FancyButton
               href="/listproduct"
-              className="whitespace-nowrap w-full sm:w-auto"
+              className="whitespace-nowrap flex-shrink-0"
             >
               Ürün Listele
             </FancyButton>
