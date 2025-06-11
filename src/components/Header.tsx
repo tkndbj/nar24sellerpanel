@@ -128,21 +128,31 @@ export default function Header() {
 
           {/* Right controls */}
           <div className="flex items-center space-x-4">
-            {/* Dashboard action buttons - Original FancyButton styling */}
+            {/* Dashboard action buttons - Responsive text sizing */}
             <div className="hidden lg:flex items-center space-x-2">
-              <FancyButton onClick={() => setIsDrawerOpen(true)}>
-                Satıcı Bilgileri
-              </FancyButton>
-              <FancyButton href="/dashboard/products">
-                Kullanıcı Ayarları
-              </FancyButton>
-              <FancyButton href="/dashboard/stock">
-                Nakliyat Detayları
-              </FancyButton>
-              <FancyButton href="/dashboard/ads">Vergi Detayları</FancyButton>
-              <FancyButton href="/dashboard/orders">
-                Dükkan Görselleri
-              </FancyButton>
+              <div className="xl:text-base lg:text-sm">
+                <FancyButton onClick={() => setIsDrawerOpen(true)}>
+                  Satıcı Bilgileri
+                </FancyButton>
+              </div>
+              <div className="xl:text-base lg:text-sm">
+                <FancyButton href="/dashboard/products">
+                  Kullanıcı Ayarları
+                </FancyButton>
+              </div>
+              <div className="xl:text-base lg:text-sm">
+                <FancyButton href="/dashboard/stock">
+                  Nakliyat Detayları
+                </FancyButton>
+              </div>
+              <div className="xl:text-base lg:text-sm">
+                <FancyButton href="/dashboard/ads">Vergi Detayları</FancyButton>
+              </div>
+              <div className="xl:text-base lg:text-sm">
+                <FancyButton href="/dashboard/orders">
+                  Dükkan Görselleri
+                </FancyButton>
+              </div>
             </div>
 
             {/* Desktop Shop switcher */}
@@ -153,7 +163,7 @@ export default function Header() {
                   className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                 >
                   <Store className="w-4 h-4" />
-                  <span className="font-medium">
+                  <span className="font-medium truncate max-w-[150px] xl:max-w-[200px]">
                     {selectedShop?.name || "Select Shop"}
                   </span>
                   <ChevronDown
@@ -163,14 +173,14 @@ export default function Header() {
                   />
                 </button>
 
-                {/* Desktop Shop Dropdown */}
+                {/* Desktop Shop Dropdown - Responsive width */}
                 {isShopDropdownOpen && (
                   <>
                     <div
                       className="fixed inset-0 z-40"
                       onClick={() => setIsShopDropdownOpen(false)}
                     />
-                    <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-64 overflow-y-auto">
+                    <div className="absolute top-full right-0 mt-2 w-56 xl:w-72 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-64 overflow-y-auto">
                       <div className="p-2">
                         {shops.map((shop) => (
                           <button
@@ -183,10 +193,10 @@ export default function Header() {
                             }`}
                           >
                             <div className="flex items-center space-x-3">
-                              <Store className="w-4 h-4" />
-                              <span>{shop.name}</span>
+                              <Store className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate">{shop.name}</span>
                               {selectedShop?.id === shop.id && (
-                                <div className="w-2 h-2 bg-indigo-500 rounded-full ml-auto" />
+                                <div className="w-2 h-2 bg-indigo-500 rounded-full ml-auto flex-shrink-0" />
                               )}
                             </div>
                           </button>
