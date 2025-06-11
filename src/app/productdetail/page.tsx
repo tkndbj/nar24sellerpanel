@@ -1,7 +1,7 @@
 // src/app/productdetail/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import Image from "next/image";
@@ -38,10 +38,10 @@ type Order = {
   timestamp?: { seconds: number };
 };
 
-export default function ProductDetailPage() {
+function ProductDetailContent() {
   const params = useSearchParams();
   const router = useRouter();
-  const productId = params.get("productId")!;
+  const productId = params.get("productId");
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -55,54 +55,68 @@ export default function ProductDetailPage() {
   const [loadingOrders, setLoadingOrders] = useState(false);
 
   useEffect(() => {
+    if (!productId) {
+      router.back();
+      return;
+    }
+
     (async () => {
       setLoading(true);
-      // 1) product
-      const pSnap = await getDoc(doc(db, "shop_products", productId));
-      if (!pSnap.exists()) return router.back();
-      const data = pSnap.data() as Product;
-      setProduct(data);
-      setSelectedImage(
-        data.imageUrls?.[0] ||
-          Object.values(data.colorImages ?? {})[0]?.[0] ||
-          null
-      );
+      try {
+        // 1) product
+        const pSnap = await getDoc(doc(db, "shop_products", productId));
+        if (!pSnap.exists()) {
+          router.back();
+          return;
+        }
+        const data = pSnap.data() as Product;
+        setProduct(data);
+        setSelectedImage(
+          data.imageUrls?.[0] ||
+            Object.values(data.colorImages ?? {})[0]?.[0] ||
+            null
+        );
 
-      // 2) sale prefs
-      const prefSnap = await getDoc(
-        doc(db, "shop_products", productId, "sale_preferences", "preferences")
-      );
-      if (prefSnap.exists()) {
-        const d = prefSnap.data();
-        if (d.maxQuantity) setMaxQty(String(d.maxQuantity));
-        if (d.discountThreshold) setThreshold(String(d.discountThreshold));
-        if (d.discountPercentage) setDiscountPct(String(d.discountPercentage));
+        // 2) sale prefs
+        const prefSnap = await getDoc(
+          doc(db, "shop_products", productId, "sale_preferences", "preferences")
+        );
+        if (prefSnap.exists()) {
+          const d = prefSnap.data();
+          if (d.maxQuantity) setMaxQty(String(d.maxQuantity));
+          if (d.discountThreshold) setThreshold(String(d.discountThreshold));
+          if (d.discountPercentage)
+            setDiscountPct(String(d.discountPercentage));
+        }
+
+        // 3) orders for this product
+        setLoadingOrders(true);
+        const ordSnap = await getDocs(
+          query(
+            collectionGroup(db, "items"),
+            where("productId", "==", productId),
+            orderBy("timestamp", "desc")
+          )
+        );
+        const ords = ordSnap.docs.map((d) => ({
+          id: d.id,
+          quantity: d.data().quantity,
+          price: d.data().price,
+          timestamp: d.data().timestamp,
+        }));
+        setOrders(ords);
+        setLoadingOrders(false);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error loading product:", error);
+        setLoading(false);
       }
-
-      // 3) orders for this product
-      setLoadingOrders(true);
-      const ordSnap = await getDocs(
-        query(
-          collectionGroup(db, "items"),
-          where("productId", "==", productId),
-          orderBy("timestamp", "desc")
-        )
-      );
-      const ords = ordSnap.docs.map((d) => ({
-        id: d.id,
-        quantity: d.data().quantity,
-        price: d.data().price,
-        timestamp: d.data().timestamp,
-      }));
-      setOrders(ords);
-      setLoadingOrders(false);
-
-      setLoading(false);
     })();
   }, [productId, router]);
 
   const savePrefs = async () => {
-    if (!product) return;
+    if (!product || !productId) return;
     const ref = doc(
       db,
       "shop_products",
@@ -296,6 +310,42 @@ export default function ProductDetailPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex items-center space-x-2">
+        <svg
+          className="animate-spin h-5 w-5 text-indigo-600"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
+        </svg>
+        <p className="text-gray-600 text-lg font-medium">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function ProductDetailPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ProductDetailContent />
+    </Suspense>
   );
 }
 
