@@ -153,7 +153,7 @@ export default function Header() {
                   className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                 >
                   <Store className="w-4 h-4" />
-                  <span className="font-medium">
+                  <span className="font-medium truncate max-w-[150px] xl:max-w-none">
                     {selectedShop?.name || "Select Shop"}
                   </span>
                   <ChevronDown
