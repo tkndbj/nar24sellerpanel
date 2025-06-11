@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { useShop } from '@/context/ShopContext';
+import React from "react";
+import Link from "next/link";
+import { useShop } from "@/context/ShopContext";
 import {
   Eye,
   ShoppingBag,
@@ -16,18 +16,10 @@ import {
   Megaphone,
   Star,
   HelpCircle,
-} from 'lucide-react';
-import FancyButton from '@/components/FancyButton';
+} from "lucide-react";
 
 export default function DashboardPage() {
-  const {
-    shops,
-    selectedShop,
-    loadingShops,
-    loadingMetrics,
-    metrics,
-    switchShop,
-  } = useShop();
+  const { selectedShop, loadingShops, loadingMetrics, metrics } = useShop();
 
   // 1) While we're loading the list of shops…
   if (loadingShops) {
@@ -78,33 +70,35 @@ export default function DashboardPage() {
   }
 
   const metricCards = [
-    { label: 'Product Views', value: metrics.productViews, icon: Eye },
-    { label: 'Sold Products', value: metrics.soldProducts, icon: ShoppingBag },
-    { label: 'Carts', value: metrics.carts, icon: ShoppingCart },
-    { label: 'Favorites', value: metrics.favorites, icon: Heart },
-    { label: 'Shop Views', value: metrics.shopViews, icon: Store },
-    { label: 'Boosts', value: metrics.boosts, icon: Rocket },
+    { label: "Product Views", value: metrics.productViews, icon: Eye },
+    { label: "Sold Products", value: metrics.soldProducts, icon: ShoppingBag },
+    { label: "Carts", value: metrics.carts, icon: ShoppingCart },
+    { label: "Favorites", value: metrics.favorites, icon: Heart },
+    { label: "Shop Views", value: metrics.shopViews, icon: Store },
+    { label: "Boosts", value: metrics.boosts, icon: Rocket },
   ];
 
   const overviewCards = [
-    { label: 'Products', href: '/products', icon: Package },
-    { label: 'Orders', href: '/orders', icon: FileText },
-    { label: 'Stock', href: '/dashboard/stock', icon: Warehouse },
-    { label: 'Ads', href: '/dashboard/ads', icon: Megaphone },
-    { label: 'Reviews', href: '/dashboard/reviews', icon: Star },
-    { label: 'Product Questions', href: '/dashboard/questions', icon: HelpCircle },
+    { label: "Products", href: "/products", icon: Package },
+    { label: "Orders", href: "/orders", icon: FileText },
+    { label: "Stock", href: "/dashboard/stock", icon: Warehouse },
+    { label: "Ads", href: "/dashboard/ads", icon: Megaphone },
+    { label: "Reviews", href: "/dashboard/reviews", icon: Star },
+    {
+      label: "Product Questions",
+      href: "/dashboard/questions",
+      icon: HelpCircle,
+    },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
       <div className="px-4 sm:px-6 lg:px-8 py-12">
-        
-
         {/* Header + Shop Switcher */}
         <header className="mb-10">
           <h1 className="text-4xl font-bold text-gray-900">Dashboard</h1>
           <p className="mt-2 text-lg text-gray-600">
-            Metrics for{' '}
+            Metrics for{" "}
             <span className="font-semibold text-indigo-600">
               {selectedShop.name}
             </span>
@@ -144,7 +138,7 @@ export default function DashboardPage() {
                     />
                   </svg>
                 ) : (
-                  card.value ?? '—'
+                  card.value ?? "—"
                 )}
               </p>
             </div>

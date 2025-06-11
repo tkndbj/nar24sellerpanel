@@ -4,10 +4,10 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
+import Image from "next/image";
 import {
   doc,
   getDoc,
-  collection,
   setDoc,
   deleteDoc,
   collectionGroup,
@@ -15,8 +15,6 @@ import {
   where,
   orderBy,
   getDocs,
-  DocumentData,
-  QueryDocumentSnapshot,
 } from "firebase/firestore";
 
 type Product = {
@@ -75,11 +73,10 @@ export default function ProductDetailPage() {
         doc(db, "shop_products", productId, "sale_preferences", "preferences")
       );
       if (prefSnap.exists()) {
-        const d = prefSnap.data()!;
+        const d = prefSnap.data();
         if (d.maxQuantity) setMaxQty(String(d.maxQuantity));
         if (d.discountThreshold) setThreshold(String(d.discountThreshold));
-        if (d.discountPercentage)
-          setDiscountPct(String(d.discountPercentage));
+        if (d.discountPercentage) setDiscountPct(String(d.discountPercentage));
       }
 
       // 3) orders for this product
@@ -93,7 +90,9 @@ export default function ProductDetailPage() {
       );
       const ords = ordSnap.docs.map((d) => ({
         id: d.id,
-        ...(d.data() as any),
+        quantity: d.data().quantity,
+        price: d.data().price,
+        timestamp: d.data().timestamp,
       }));
       setOrders(ords);
       setLoadingOrders(false);
@@ -111,7 +110,11 @@ export default function ProductDetailPage() {
       "sale_preferences",
       "preferences"
     );
-    const payload: any = {};
+    const payload: {
+      maxQuantity?: number;
+      discountThreshold?: number;
+      discountPercentage?: number;
+    } = {};
     const mq = parseInt(maxQty),
       th = parseInt(threshold),
       dp = parseInt(discountPct);
@@ -169,9 +172,11 @@ export default function ProductDetailPage() {
         <div className="space-y-6">
           <div className="relative overflow-hidden rounded-2xl shadow-lg">
             {selectedImage ? (
-              <img
+              <Image
                 src={selectedImage}
                 alt={productName}
+                width={400}
+                height={400}
                 className="w-full h-[400px] object-cover transition-transform hover:scale-105"
               />
             ) : (
@@ -181,8 +186,7 @@ export default function ProductDetailPage() {
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
-                  <path d="M4 3h12a1 1 0 011 1v12a1 1 0...
-                  " />
+                  <path d="M4 3h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1zm0 2v10h12V5H4zm2 1a1 1 0 100 2 1 1 0 000-2zm8 7H6l2-3 2 3 3-4 1 2v1z" />
                 </svg>
               </div>
             )}
@@ -199,9 +203,11 @@ export default function ProductDetailPage() {
                       : "border-gray-200 hover:border-indigo-300"
                   }`}
                 >
-                  <img
+                  <Image
                     src={url}
                     alt={`thumb-${i}`}
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover"
                   />
                 </button>
@@ -277,7 +283,9 @@ export default function ProductDetailPage() {
                   </span>
                   <span className="text-sm text-gray-500">
                     {o.timestamp
-                      ? new Date(o.timestamp.seconds * 1000).toLocaleDateString()
+                      ? new Date(
+                          o.timestamp.seconds * 1000
+                        ).toLocaleDateString()
                       : "-"}
                   </span>
                 </div>

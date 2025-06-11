@@ -7,6 +7,7 @@ import React, {
   useState,
   useEffect,
   ReactNode,
+  useCallback,
 } from "react";
 import { auth, db } from "@/lib/firebase";
 import {
@@ -86,13 +87,14 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     Promise.all(queries.map((q) => getDocs(q)))
       .then((snaps) => {
         const docs = snaps.flatMap((s) => s.docs);
-        const unique = Array.from(
-          new Map(docs.map((d) => [d.id, d])).values()
-        );
-        const list = unique.map<Shop>((d) => ({
-          id: d.id,
-          name: (d.data() as any).name ?? "Unnamed Shop",
-        }));
+        const unique = Array.from(new Map(docs.map((d) => [d.id, d])).values());
+        const list = unique.map<Shop>((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            name: data.name ?? "Unnamed Shop",
+          };
+        });
         setShops(list);
         if (!selectedShop && list.length) {
           setSelectedShop(list[0]);
@@ -101,23 +103,26 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
       .finally(() => {
         setLoadingShops(false);
       });
-  }, [user]);
+  }, [user, selectedShop]);
 
   // 3️⃣ Fetch metrics for whichever shop is selected
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
     if (!user || !selectedShop) return;
     setLoadingMetrics(true);
 
     // product‐based aggregates
     const prodSnap = await getDocs(
-      query(collection(db, "shop_products"), where("shopId", "==", selectedShop.id))
+      query(
+        collection(db, "shop_products"),
+        where("shopId", "==", selectedShop.id)
+      )
     );
     let productViews = 0,
       soldProducts = 0,
       carts = 0,
       favorites = 0;
     prodSnap.forEach((p) => {
-      const d = p.data() as any;
+      const d = p.data();
       productViews += d.clickCount || 0;
       soldProducts += d.purchaseCount || 0;
       carts += d.cartCount || 0;
@@ -126,9 +131,7 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
 
     // shop views
     const shopSnap = await getDoc(doc(db, "shops", selectedShop.id));
-    const shopViews = shopSnap.exists()
-      ? ((shopSnap.data() as any).clickCount || 0)
-      : 0;
+    const shopViews = shopSnap.exists() ? shopSnap.data().clickCount || 0 : 0;
 
     // boost history count
     const boostSnap = await getDocs(
@@ -136,14 +139,21 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     );
     const boosts = boostSnap.size;
 
-    setMetrics({ productViews, soldProducts, carts, favorites, shopViews, boosts });
+    setMetrics({
+      productViews,
+      soldProducts,
+      carts,
+      favorites,
+      shopViews,
+      boosts,
+    });
     setLoadingMetrics(false);
-  };
+  }, [user, selectedShop]);
 
   // re‐run when selectedShop or user changes
   useEffect(() => {
     fetchMetrics();
-  }, [selectedShop, user]);
+  }, [fetchMetrics]);
 
   const switchShop = (shopId: string) => {
     const shop = shops.find((s) => s.id === shopId) || null;

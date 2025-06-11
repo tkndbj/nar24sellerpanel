@@ -15,9 +15,10 @@ import {
   DocumentData,
 } from "firebase/firestore";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import FancyButton from '@/components/FancyButton';
+import FancyButton from "@/components/FancyButton";
 
 type Product = {
   id: string;
@@ -28,7 +29,6 @@ type Product = {
   imageUrls?: string[];
   colorImages?: Record<string, string[]>;
   createdAt?: { seconds: number };
-  [key: string]: any;
 };
 
 const PAGE_SIZE = 20;
@@ -59,7 +59,7 @@ export default function ProductsPage() {
     );
     const snap = await getDocs(q);
     const docs = snap.docs;
-    setProducts(docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+    setProducts(docs.map((d) => ({ id: d.id, ...d.data() } as Product)));
     setLastDoc(docs[docs.length - 1] ?? null);
     setHasMore(docs.length === PAGE_SIZE);
     setLoading(false);
@@ -81,7 +81,7 @@ export default function ProductsPage() {
     const docs = snap.docs;
     setProducts((prev) => [
       ...prev,
-      ...docs.map((d) => ({ id: d.id, ...(d.data() as any) })),
+      ...docs.map((d) => ({ id: d.id, ...d.data() } as Product)),
     ]);
     setLastDoc(docs[docs.length - 1] ?? null);
     setHasMore(docs.length === PAGE_SIZE);
@@ -106,7 +106,9 @@ export default function ProductsPage() {
   if (!selectedShop) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-20">
-        <p className="text-gray-600 text-lg font-medium">Select a shop to view its products.</p>
+        <p className="text-gray-600 text-lg font-medium">
+          Select a shop to view its products.
+        </p>
       </div>
     );
   }
@@ -123,49 +125,74 @@ export default function ProductsPage() {
             >
               <ArrowLeft className="w-6 h-6 text-gray-600" />
             </button>
-            <h1 className="text-3xl font-bold text-gray-900">{selectedShop.name} — Products</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {selectedShop.name} — Products
+            </h1>
           </div>
-          <div className="mt-6 relative max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+          <div className="mt-6 flex items-center space-x-4">
+            {/* Search */}
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search products…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              />
             </div>
-            <div className="mt-6 flex items-center space-x-4">
-  {/* Search */}
-  <div className="relative flex-1">
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      {/* magnifying glass icon */}
-    </div>
-    <input
-      type="text"
-      placeholder="Search products…"
-      value={searchQuery}
-      onChange={e => setSearchQuery(e.target.value)}
-      className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-    />
-  </div>
 
-  {/* Ürün Listele button */}
-  <FancyButton href="/listproduct" className="whitespace-nowrap">
-    Ürün Listele
-  </FancyButton>
-</div>
+            {/* Ürün Listele button */}
+            <FancyButton href="/listproduct" className="whitespace-nowrap">
+              Ürün Listele
+            </FancyButton>
           </div>
         </header>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <svg className="animate-spin h-5 w-5 text-indigo-600 mr-2" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            <svg
+              className="animate-spin h-5 w-5 text-indigo-600 mr-2"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
             </svg>
-            <p className="text-gray-600 text-lg font-medium">Loading products...</p>
+            <p className="text-gray-600 text-lg font-medium">
+              Loading products...
+            </p>
           </div>
         ) : (
           <>
             {filtered.length === 0 ? (
-              <p className="text-gray-600 text-lg font-medium">No products found.</p>
+              <p className="text-gray-600 text-lg font-medium">
+                No products found.
+              </p>
             ) : (
               <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filtered.map((prod) => {
@@ -183,23 +210,33 @@ export default function ProductsPage() {
                       >
                         <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
                           {displayImage ? (
-                            <img
+                            <Image
                               src={displayImage}
                               alt={prod.productName}
+                              width={96}
+                              height={96}
                               className="w-full h-full object-cover"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <svg className="w-10 h-10 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                              <svg
+                                className="w-10 h-10 text-gray-300"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
                                 <path d="M4 3h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1zm0 2v10h12V5H4zm2 1a1 1 0 100 2 1 1 0 000-2zm8 7H6l2-3 2 3 3-4 1 2v1z" />
                               </svg>
                             </div>
                           )}
                         </div>
                         <div className="ml-4 flex-1">
-                          <h2 className="text-lg font-semibold text-gray-900 truncate">{prod.productName}</h2>
+                          <h2 className="text-lg font-semibold text-gray-900 truncate">
+                            {prod.productName}
+                          </h2>
                           {prod.brandModel && (
-                            <p className="mt-1 text-sm text-gray-500">{prod.brandModel}</p>
+                            <p className="mt-1 text-sm text-gray-500">
+                              {prod.brandModel}
+                            </p>
                           )}
                           {prod.price != null && (
                             <p className="mt-2 text-lg font-bold text-indigo-600">
@@ -227,11 +264,27 @@ export default function ProductsPage() {
 
             {loadingMore && (
               <div className="mt-10 flex items-center justify-center">
-                <svg className="animate-spin h-5 w-5 text-indigo-600 mr-2" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                <svg
+                  className="animate-spin h-5 w-5 text-indigo-600 mr-2"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
-                <p className="text-gray-600 text-lg font-medium">Loading more...</p>
+                <p className="text-gray-600 text-lg font-medium">
+                  Loading more...
+                </p>
               </div>
             )}
           </>
