@@ -9,12 +9,10 @@ import { ShopProvider } from "@/context/ShopContext";
 
 export default function ClientAuthProvider({ children }: { children: ReactNode }) {
   const [initializing, setInitializing] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+    const unsub = onAuthStateChanged(auth, (u) => {      
       setInitializing(false);
       if (!u) router.push("/");
     });

@@ -61,15 +61,6 @@ const [user, setUser] = useState<User|null>(null)
       router.push("/")
     }
   }, [initializing, user, router])
-  
-  // 2️⃣ Show a loading screen until we know the auth state
-  if (initializing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Checking authentication…</p>
-      </div>
-    )
-  }
 
   useEffect(() => {
     const savedData = sessionStorage.getItem("productPreviewData");
@@ -149,6 +140,15 @@ const [user, setUser] = useState<User|null>(null)
       router.push("/listproduct");
     }
   }, [router]);
+  
+  // 2️⃣ Show a loading screen until we know the auth state
+  if (initializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Checking authentication…</p>
+      </div>
+    )
+  } 
 
   const handleEdit = () => {
     // Don't clear the data when going back to edit
