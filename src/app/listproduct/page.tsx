@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useShop } from "@/context/ShopContext"; 
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
-
+import { useRouter } from "next/navigation";
 // TODO: Replace these imports with your real data/constants
 import {
   categories,
@@ -23,7 +23,23 @@ import {
 } from "@/constants/productData";
 
 export default function ListProductForm() {
-  const { selectedShop } = useShop();
+  const { selectedShop, loadingShops } = useShop();
+
+  const router = useRouter();
+
+  if (loadingShops) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading your shops…</p>
+      </div>
+    );
+  }
+
+  // 2️⃣ no shop? send them back (shouldn’t happen if they’re authorized)
+  if (!selectedShop) {
+    router.push("/");
+    return null;
+  }
 
   // Media
   const [images, setImages] = useState<File[]>([]);
@@ -472,9 +488,13 @@ export default function ListProductForm() {
           iban:             sellerInfo?.iban             ?? "",
         };
   
-        // 4️⃣ then serialize and navigate
-        sessionStorage.setItem("productPreviewData", JSON.stringify(productData));
-        window.location.href = "/listproductpreview";
+        const previewPayload = {
+          ...productData,
+          shopId: selectedShop.id,    // ← add this
+        };
+        
+        sessionStorage.setItem("productPreviewData", JSON.stringify(previewPayload));
+        router.push("/listproductpreview");
       } catch (err) {
         console.error("Error preparing data:", err);
         alert("Error preparing data for preview. Please try again.");
