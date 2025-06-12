@@ -353,10 +353,10 @@ export default function StockPage() {
 
   if (!selectedShop) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 pt-20">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 pt-20 px-4">
         <div className="text-center">
           <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 text-lg font-medium">
+          <p className="text-gray-600 text-lg font-medium text-center">
             Stok takibi için bir mağaza seçin.
           </p>
         </div>
@@ -365,22 +365,22 @@ export default function StockPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 pt-24">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 pt-20 sm:pt-24">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4">
             <button
               onClick={() => router.back()}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow flex-shrink-0 mt-1 sm:mt-0"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
                 Stok Yönetimi
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm sm:text-base">
                 {selectedShop.name} mağazası için ürün envanterini takip edin ve yönetin
               </p>
             </div>
@@ -388,55 +388,55 @@ export default function StockPage() {
         </div>
 
         {/* Search and Filters Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 mb-6 sm:mb-8">
           {/* Search Bar */}
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
               <input
                 type="text"
                 placeholder="Ürün adı, marka veya kategori ara..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-500 transition-all"
+                className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-500 transition-all text-sm sm:text-base"
               />
             </div>
           </div>
 
           {/* Applied Filters */}
           {(selectedCategory || selectedSubcategory || selectedSubSubcategory) && (
-            <div className="mb-6">
+            <div className="mb-4 sm:mb-6">
               <div className="flex flex-wrap gap-2">
                 {selectedCategory && (
-                  <div className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-2 rounded-lg text-sm font-medium">
-                    <span>{selectedCategory}</span>
+                  <div className="flex items-center gap-2 bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium">
+                    <span className="truncate max-w-[100px] sm:max-w-none">{selectedCategory}</span>
                     <button
                       onClick={clearCategoryFilter}
-                      className="hover:bg-blue-200 rounded-full p-1 transition-colors"
+                      className="hover:bg-blue-200 rounded-full p-1 transition-colors flex-shrink-0"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-2 h-2 sm:w-3 sm:h-3" />
                     </button>
                   </div>
                 )}
                 {selectedSubcategory && (
-                  <div className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm font-medium">
-                    <span>{selectedSubcategory}</span>
+                  <div className="flex items-center gap-2 bg-green-100 text-green-800 px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium">
+                    <span className="truncate max-w-[100px] sm:max-w-none">{selectedSubcategory}</span>
                     <button
                       onClick={clearSubcategoryFilter}
-                      className="hover:bg-green-200 rounded-full p-1 transition-colors"
+                      className="hover:bg-green-200 rounded-full p-1 transition-colors flex-shrink-0"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-2 h-2 sm:w-3 sm:h-3" />
                     </button>
                   </div>
                 )}
                 {selectedSubSubcategory && (
-                  <div className="flex items-center gap-2 bg-purple-100 text-purple-800 px-3 py-2 rounded-lg text-sm font-medium">
-                    <span>{selectedSubSubcategory}</span>
+                  <div className="flex items-center gap-2 bg-purple-100 text-purple-800 px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium">
+                    <span className="truncate max-w-[100px] sm:max-w-none">{selectedSubSubcategory}</span>
                     <button
                       onClick={clearSubSubcategoryFilter}
-                      className="hover:bg-purple-200 rounded-full p-1 transition-colors"
+                      className="hover:bg-purple-200 rounded-full p-1 transition-colors flex-shrink-0"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-2 h-2 sm:w-3 sm:h-3" />
                     </button>
                   </div>
                 )}
@@ -444,151 +444,153 @@ export default function StockPage() {
             </div>
           )}
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3">
-            {/* Category Filter */}
-            <div className="relative">
-              <button
-                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors min-w-[160px] text-left"
-              >
-                <Filter className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium">
-                  {selectedCategory || 'Kategori Seç'}
-                </span>
-              </button>
-              
-              {showCategoryDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
-                  <button
-                    onClick={() => handleCategorySelect(null)}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm border-b border-gray-100"
-                  >
-                    Tümü
-                  </button>
-                  {categories.map((category) => (
+          {/* Filters - Horizontal scroll on mobile */}
+          <div className="overflow-x-auto">
+            <div className="flex gap-2 sm:gap-3 pb-2 min-w-max sm:min-w-0 sm:flex-wrap">
+              {/* Category Filter */}
+              <div className="relative flex-shrink-0">
+                <button
+                  onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors min-w-[140px] sm:min-w-[160px] text-left"
+                >
+                  <Filter className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm font-medium truncate">
+                    {selectedCategory || 'Kategori Seç'}
+                  </span>
+                </button>
+                
+                {showCategoryDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-56 sm:w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
                     <button
-                      key={category.key}
-                      onClick={() => handleCategorySelect(category.key)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm"
+                      onClick={() => handleCategorySelect(null)}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-gray-50 transition-colors text-xs sm:text-sm border-b border-gray-100"
                     >
-                      {category.key}
+                      Tümü
                     </button>
-                  ))}
+                    {categories.map((category) => (
+                      <button
+                        key={category.key}
+                        onClick={() => handleCategorySelect(category.key)}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-gray-50 transition-colors text-xs sm:text-sm"
+                      >
+                        {category.key}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Subcategory Filter */}
+              {selectedCategory && availableSubcategories.length > 0 && (
+                <div className="relative animate-in slide-in-from-left duration-300 flex-shrink-0">
+                  <button
+                    onClick={() => setShowSubcategoryDropdown(!showSubcategoryDropdown)}
+                    className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-colors min-w-[140px] sm:min-w-[160px] text-left"
+                  >
+                    <span className="text-xs sm:text-sm font-medium text-green-700 truncate">
+                      {selectedSubcategory || 'Alt Kategori Seç'}
+                    </span>
+                  </button>
+                  
+                  {showSubcategoryDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-56 sm:w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+                      <button
+                        onClick={() => handleSubcategorySelect(null)}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-gray-50 transition-colors text-xs sm:text-sm border-b border-gray-100"
+                      >
+                        Tümü
+                      </button>
+                      {availableSubcategories.map((subcategory) => (
+                        <button
+                          key={subcategory}
+                          onClick={() => handleSubcategorySelect(subcategory)}
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-gray-50 transition-colors text-xs sm:text-sm"
+                        >
+                          {subcategory}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
+
+              {/* Sub-Subcategory Filter */}
+              {selectedSubcategory && availableSubSubcategories.length > 0 && (
+                <div className="relative animate-in slide-in-from-left duration-300 flex-shrink-0">
+                  <button
+                    onClick={() => setShowSubSubcategoryDropdown(!showSubSubcategoryDropdown)}
+                    className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-xl hover:bg-purple-100 transition-colors min-w-[140px] sm:min-w-[160px] text-left"
+                  >
+                    <span className="text-xs sm:text-sm font-medium text-purple-700 truncate">
+                      {selectedSubSubcategory || 'Alt Alt Kategori Seç'}
+                    </span>
+                  </button>
+                  
+                  {showSubSubcategoryDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-56 sm:w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+                      <button
+                        onClick={() => handleSubSubcategorySelect(null)}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-gray-50 transition-colors text-xs sm:text-sm border-b border-gray-100"
+                      >
+                        Tümü
+                      </button>
+                      {availableSubSubcategories.map((subSubcategory) => (
+                        <button
+                          key={subSubcategory}
+                          onClick={() => handleSubSubcategorySelect(subSubcategory)}
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-gray-50 transition-colors text-xs sm:text-sm"
+                        >
+                          {subSubcategory}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Out of Stock Filter */}
+              <button
+                onClick={() => setShowOutOfStock(!showOutOfStock)}
+                className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 border rounded-xl transition-all flex-shrink-0 min-w-[120px] sm:min-w-auto ${
+                  showOutOfStock
+                    ? 'bg-orange-500 text-white border-orange-500 shadow-lg'
+                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-medium whitespace-nowrap">Tükenenler</span>
+              </button>
+
+              {/* Refresh Button */}
+              <button
+                onClick={() => fetchProducts()}
+                disabled={isLoading}
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors text-blue-700 flex-shrink-0 min-w-[100px] sm:min-w-auto"
+              >
+                <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="text-xs sm:text-sm font-medium whitespace-nowrap">Yenile</span>
+              </button>
             </div>
-
-            {/* Subcategory Filter */}
-            {selectedCategory && availableSubcategories.length > 0 && (
-              <div className="relative animate-in slide-in-from-left duration-300">
-                <button
-                  onClick={() => setShowSubcategoryDropdown(!showSubcategoryDropdown)}
-                  className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-colors min-w-[160px] text-left"
-                >
-                  <span className="text-sm font-medium text-green-700">
-                    {selectedSubcategory || 'Alt Kategori Seç'}
-                  </span>
-                </button>
-                
-                {showSubcategoryDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
-                    <button
-                      onClick={() => handleSubcategorySelect(null)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm border-b border-gray-100"
-                    >
-                      Tümü
-                    </button>
-                    {availableSubcategories.map((subcategory) => (
-                      <button
-                        key={subcategory}
-                        onClick={() => handleSubcategorySelect(subcategory)}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm"
-                      >
-                        {subcategory}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Sub-Subcategory Filter */}
-            {selectedSubcategory && availableSubSubcategories.length > 0 && (
-              <div className="relative animate-in slide-in-from-left duration-300">
-                <button
-                  onClick={() => setShowSubSubcategoryDropdown(!showSubSubcategoryDropdown)}
-                  className="flex items-center gap-2 px-4 py-3 bg-purple-50 border border-purple-200 rounded-xl hover:bg-purple-100 transition-colors min-w-[160px] text-left"
-                >
-                  <span className="text-sm font-medium text-purple-700">
-                    {selectedSubSubcategory || 'Alt Alt Kategori Seç'}
-                  </span>
-                </button>
-                
-                {showSubSubcategoryDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
-                    <button
-                      onClick={() => handleSubSubcategorySelect(null)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm border-b border-gray-100"
-                    >
-                      Tümü
-                    </button>
-                    {availableSubSubcategories.map((subSubcategory) => (
-                      <button
-                        key={subSubcategory}
-                        onClick={() => handleSubSubcategorySelect(subSubcategory)}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm"
-                      >
-                        {subSubcategory}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Out of Stock Filter */}
-            <button
-              onClick={() => setShowOutOfStock(!showOutOfStock)}
-              className={`flex items-center gap-2 px-4 py-3 border rounded-xl transition-all ${
-                showOutOfStock
-                  ? 'bg-orange-500 text-white border-orange-500 shadow-lg'
-                  : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-700'
-              }`}
-            >
-              <AlertTriangle className="w-4 h-4" />
-              <span className="text-sm font-medium">Tükenenler</span>
-            </button>
-
-            {/* Refresh Button */}
-            <button
-              onClick={() => fetchProducts()}
-              disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors text-blue-700"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              <span className="text-sm font-medium">Yenile</span>
-            </button>
           </div>
         </div>
 
         {/* Products List */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
+          <div className="flex items-center justify-center py-12 sm:py-16">
             <div className="text-center">
-              <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-600 text-lg font-medium">Ürünler yükleniyor...</p>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600 text-base sm:text-lg font-medium">Ürünler yükleniyor...</p>
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <Package className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <div className="text-center py-12 sm:py-16 px-4">
+                <Package className="w-16 h-16 sm:w-20 sm:h-20 text-gray-300 mx-auto mb-4 sm:mb-6" />
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                   Ürün bulunamadı
                 </h3>
-                <p className="text-gray-500 mb-6">
+                <p className="text-gray-500 mb-4 sm:mb-6 text-sm sm:text-base">
                   Arama kriterlerinizi değiştirmeyi deneyin
                 </p>
                 <button
@@ -599,7 +601,7 @@ export default function StockPage() {
                     setSelectedSubSubcategory(null);
                     setShowOutOfStock(false);
                   }}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+                  className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors text-sm sm:text-base"
                 >
                   Filtreleri Temizle
                 </button>
@@ -621,15 +623,15 @@ export default function StockPage() {
                 
                 {/* Load More Button */}
                 {hasMore && !showOutOfStock && !searchQuery && !selectedCategory && (
-                  <div className="text-center pt-8">
+                  <div className="text-center pt-6 sm:pt-8">
                     <button
                       onClick={() => fetchProducts(true)}
                       disabled={isLoadingMore}
-                      className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 shadow-lg"
+                      className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 shadow-lg text-sm sm:text-base"
                     >
                       {isLoadingMore ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                           Yükleniyor...
                         </div>
                       ) : (
@@ -689,44 +691,44 @@ const ProductCard: React.FC<ProductCardProps> = ({
     <div className={`bg-white rounded-2xl shadow-lg border-2 transition-all hover:shadow-xl ${
       isOutOfStock ? 'border-red-400 bg-red-50' : 'border-gray-100 hover:border-blue-200'
     }`}>
-      <div className="p-6">
-        <div className="flex gap-6">
+      <div className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
           {/* Product Image */}
-          <div className="flex-shrink-0">
-            <div className="w-28 h-28 bg-gray-100 rounded-xl overflow-hidden relative">
+          <div className="flex-shrink-0 self-center sm:self-start">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 bg-gray-100 rounded-xl overflow-hidden relative mx-auto sm:mx-0">
               {displayImage ? (
                 <Image
                   src={displayImage}
                   alt={product.productName}
                   fill
                   className="object-cover"
-                  sizes="112px"
+                  sizes="(max-width: 640px) 96px, 112px"
                   onError={() => handleImageError(displayImage)}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Package className="w-10 h-10 text-gray-400" />
+                  <Package className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
                 </div>
               )}
             </div>
           </div>
 
           {/* Product Details */}
-          <div className="flex-1">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <h3 className="font-bold text-lg text-gray-900 mb-1">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-lg sm:text-xl text-gray-900 mb-1 break-words">
                   {product.productName}
                 </h3>
                 {product.brandModel && (
-                  <p className="text-gray-600 text-sm mb-2">
+                  <p className="text-gray-600 text-sm mb-2 break-words">
                     {product.brandModel}
                   </p>
                 )}
               </div>
               {product.price && (
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-purple-600">
+                <div className="text-left sm:text-right flex-shrink-0">
+                  <p className="text-xl sm:text-2xl font-bold text-purple-600">
                     {product.price.toFixed(2)} {product.currency || 'TL'}
                   </p>
                 </div>
@@ -734,12 +736,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </div>
 
             {/* Main Quantity */}
-            <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4 mb-4">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 rounded-xl p-3 sm:p-4 mb-4 gap-3 sm:gap-0">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <span className="text-sm font-semibold text-gray-700">
                   Toplam Stok:
                 </span>
-                <span className={`text-lg font-bold px-3 py-1 rounded-lg ${
+                <span className={`text-base sm:text-lg font-bold px-2 sm:px-3 py-1 rounded-lg ${
                   product.quantity === 0 
                     ? 'bg-red-100 text-red-600' 
                     : product.quantity < 10
@@ -751,9 +753,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
               </div>
               <button
                 onClick={() => onUpdateQuantity(product)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium text-sm sm:text-base"
               >
-                <Edit3 className="w-4 h-4" />
+                <Edit3 className="w-3 h-3 sm:w-4 sm:h-4" />
                 Güncelle
               </button>
             </div>
@@ -761,42 +763,44 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {/* Color Quantities */}
             {hasColorOptions && (
               <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800 mb-3">Renk Stoğu:</h4>
-                {Object.entries(product.colorQuantities!).map(([color, quantity]) => {
-                  const lowerColor = color.toLowerCase();
-                  const hexColor = colorHexMapping[lowerColor];
-                  const colorName = colorNameMapping[lowerColor] || color;
-                  
-                  return (
-                    <div key={color} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className={`w-8 h-8 rounded-full border-2 border-gray-300 ${getColorStyle(color)}`}
-                          style={hexColor ? { backgroundColor: hexColor } : {}}
-                        />
-                        <span className="text-sm font-medium text-gray-700">
-                          {colorName}:
-                        </span>
-                        <span className={`text-sm font-bold px-2 py-1 rounded ${
-                          quantity === 0 
-                            ? 'bg-red-100 text-red-600' 
-                            : quantity < 5
-                            ? 'bg-orange-100 text-orange-600'
-                            : 'bg-green-100 text-green-600'
-                        }`}>
-                          {quantity}
-                        </span>
+                <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">Renk Stoğu:</h4>
+                <div className="space-y-2 sm:space-y-3">
+                  {Object.entries(product.colorQuantities!).map(([color, quantity]) => {
+                    const lowerColor = color.toLowerCase();
+                    const hexColor = colorHexMapping[lowerColor];
+                    const colorName = colorNameMapping[lowerColor] || color;
+                    
+                    return (
+                      <div key={color} className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 rounded-lg p-3 gap-2 sm:gap-0">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div 
+                            className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 flex-shrink-0 ${getColorStyle(color)}`}
+                            style={hexColor ? { backgroundColor: hexColor } : {}}
+                          />
+                          <span className="text-xs sm:text-sm font-medium text-gray-700 min-w-0 flex-1">
+                            {colorName}:
+                          </span>
+                          <span className={`text-xs sm:text-sm font-bold px-2 py-1 rounded flex-shrink-0 ${
+                            quantity === 0 
+                              ? 'bg-red-100 text-red-600' 
+                              : quantity < 5
+                              ? 'bg-orange-100 text-orange-600'
+                              : 'bg-green-100 text-green-600'
+                          }`}>
+                            {quantity}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => onUpdateQuantity(product, color)}
+                          className="flex items-center justify-center gap-1 px-2 sm:px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs sm:text-sm rounded-lg transition-colors flex-shrink-0"
+                        >
+                          <Edit3 className="w-2 h-2 sm:w-3 sm:h-3" />
+                          Güncelle
+                        </button>
                       </div>
-                      <button
-                        onClick={() => onUpdateQuantity(product, color)}
-                        className="flex items-center gap-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors"
-                      >
-                        <Edit3 className="w-3 h-3" />
-                        Güncelle
-                      </button>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
@@ -845,26 +849,26 @@ const UpdateQuantityDialog: React.FC<UpdateQuantityDialogProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-gray-900">
+      <div className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl mx-4">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 pr-4">
             Stok Miktarını Güncelle
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-1"
+            className="text-gray-400 hover:text-gray-600 p-1 flex-shrink-0"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </div>
         
-        <div className="mb-6">
-          <div className="bg-gray-50 rounded-xl p-4 mb-4">
-            <p className="font-semibold text-gray-900 mb-1">
+        <div className="mb-4 sm:mb-6">
+          <div className="bg-gray-50 rounded-xl p-3 sm:p-4 mb-4">
+            <p className="font-semibold text-gray-900 mb-1 text-sm sm:text-base break-words">
               {product.productName}
             </p>
             {color && (
-              <p className="text-sm text-gray-600">
+              <p className="text-xs sm:text-sm text-gray-600">
                 Renk: <span className="font-medium text-blue-600">
                   {colorNameMapping[color.toLowerCase()] || color}
                 </span>
@@ -881,22 +885,22 @@ const UpdateQuantityDialog: React.FC<UpdateQuantityDialogProps> = ({
             value={newQuantity}
             onChange={(e) => setNewQuantity(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white text-gray-900 text-lg"
+            className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white text-gray-900 text-base sm:text-lg"
             min="0"
             autoFocus
           />
         </div>
         
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+            className="flex-1 px-4 sm:px-6 py-2 sm:py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors font-medium text-sm sm:text-base"
           >
             İptal
           </button>
           <button
             onClick={handleUpdate}
-            className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors font-medium"
+            className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors font-medium text-sm sm:text-base"
           >
             Güncelle
           </button>

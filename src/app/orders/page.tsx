@@ -148,7 +148,7 @@ export default function OrdersPage() {
             Bu mağaza için sipariş bulunamadı.
           </p>
         ) : (
-          <div className="overflow-x-auto bg-white rounded-none sm:rounded-2xl shadow-lg w-full">
+          <div className="overflow-x-auto bg-white rounded-none sm:rounded-2xl shadow-lg w-full -mx-4 px-0 sm:mx-0 sm:px-0">
             <table className="min-w-full table-auto">
               <thead>
                 <tr className="bg-gray-100 text-left">
