@@ -3,7 +3,7 @@
 
 import { ReactNode, useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { ShopProvider } from "@/context/ShopContext";
 
@@ -12,9 +12,11 @@ export default function ClientAuthProvider({ children }: { children: ReactNode }
   const router = useRouter();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {      
+    const unsub = onAuthStateChanged(auth, (u) => {
       setInitializing(false);
-      if (!u) router.push("/");
+      if (!u) {
+        router.push("/");
+      }
     });
     return unsub;
   }, [router]);
