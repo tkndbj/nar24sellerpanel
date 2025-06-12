@@ -141,14 +141,14 @@ export default function StockPage() {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  }, [selectedShop, lastDoc]);
+  }, [selectedShop]);
 
   // Initial fetch
   useEffect(() => {
     if (selectedShop) {
       fetchProducts();
     }
-  }, [selectedShop]);
+  }, [selectedShop, fetchProducts]);
 
   // Filtered products
   const filteredProducts = useMemo(() => {
@@ -235,7 +235,7 @@ export default function StockPage() {
   // Handle quantity update
   const handleUpdateQuantity = async (productId: string, quantity: number, color?: string) => {
     try {
-      const updateData: any = {};
+        const updateData: Partial<Product> & { colorQuantities?: Record<string, number> } = {};
       
       if (color) {
         // Find the product to get current colorQuantities
