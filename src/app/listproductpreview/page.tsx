@@ -239,6 +239,7 @@ const [user, setUser] = useState<User|null>(null)
       ibanOwnerName: productData.ibanOwnerName,
       ibanOwnerSurname: productData.ibanOwnerSurname,
       iban: productData.iban,
+      userId: uid,
       ownerId: uid,
       needsSync: true,
       updatedAt: serverTimestamp(),
