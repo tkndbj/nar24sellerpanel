@@ -130,69 +130,105 @@ export default function ListProductPreview() {
  };
 
  const handleConfirmAndList = async () => {
-  setIsLoading(true);
+  setIsLoading(true)
   try {
-    if (!productData) {
-      alert("Ürün verisi eksik, lütfen yeniden deneyin.");
-      setIsLoading(false);
-      return;
-    }
-    // now TS knows productData is non-null
-    const data = productData;
+    if (!productData) throw new Error("Missing data")
+    const user = auth.currentUser!
+    const productId = crypto.randomUUID()
 
-    // 1️⃣ Generate ID
-    const productId = crypto.randomUUID();
-
-    // 2️⃣ Ensure user
-    const user = auth.currentUser;
-    if (!user) throw new Error("You must be signed in…");
-
-    // 3️⃣ Upload images
+    // 1️⃣ upload main product images
     const imageUrls = await Promise.all(
-      data.images.map(async (file) => {
+      productData.images.map(async (file) => {
         const imgRef = storageRef(
           storage,
           `products/${user.uid}/default_images/${Date.now()}_${file.name}`
-        );
-        await uploadBytes(imgRef, file);
-        return getDownloadURL(imgRef);
+        )
+        await uploadBytes(imgRef, file)
+        return getDownloadURL(imgRef)
       })
-    );
+    )
 
-    // 4️⃣ Video
-    let videoUrl: string | null = null;
-    if (data.video) {
+    // 2️⃣ upload optional video
+    let videoUrl: string | null = null
+    if (productData.video) {
       const vidRef = storageRef(
         storage,
-        `products/${user.uid}/preview_videos/${Date.now()}_${data.video.name}`
-      );
-      await uploadBytes(vidRef, data.video);
-      videoUrl = await getDownloadURL(vidRef);
+        `products/${user.uid}/preview_videos/${Date.now()}_${productData.video.name}`
+      )
+      await uploadBytes(vidRef, productData.video)
+      videoUrl = await getDownloadURL(vidRef)
     }
 
-    // 5️⃣ Firestore payload
+    // 3️⃣ upload each selected‐color image
+    const selectedColorsPayload: Record<
+      string,
+      { quantity: string; imageUrl: string | null }
+    > = {}
+    for (const [color, info] of Object.entries(productData.selectedColors)) {
+      let imageUrl: string | null = null
+      if (info.image) {
+        const colRef = storageRef(
+          storage,
+          `products/${user.uid}/color_images/${Date.now()}_${color}.jpg`
+        )
+        await uploadBytes(colRef, info.image)
+        imageUrl = await getDownloadURL(colRef)
+      }
+      selectedColorsPayload[color] = {
+        quantity: info.quantity,
+        imageUrl,
+      }
+    }
+
+    // 4️⃣ build Firestore payload *without* any File objects
     const applicationData = {
-      ...data,
+      title: productData.title,
+      description: productData.description,
+      price: productData.price,
+      quantity: productData.quantity,
+      condition: productData.condition,
+      deliveryOption: productData.deliveryOption,
+      category: productData.category,
+      subcategory: productData.subcategory,
+      subsubcategory: productData.subsubcategory,
+      brand: productData.brand,
+      jewelryType: productData.jewelryType,
+      selectedMaterials: productData.selectedMaterials,
+      selectedPantSizes: productData.selectedPantSizes,
+      selectedClothingSizes: productData.selectedClothingSizes,
+      selectedClothingFit: productData.selectedClothingFit,
+      selectedClothingType: productData.selectedClothingType,
+      selectedFootwearGender: productData.selectedFootwearGender,
+      selectedFootwearSizes: productData.selectedFootwearSizes,
+      selectedGender: productData.selectedGender,
+      // **here’s the key change**:
+      selectedColors: selectedColorsPayload,
       imageUrls,
       videoUrl,
+      phone: productData.phone,
+      region: productData.region,
+      address: productData.address,
+      ibanOwnerName: productData.ibanOwnerName,
+      ibanOwnerSurname: productData.ibanOwnerSurname,
+      iban: productData.iban,
       ownerId: user.uid,
       needsSync: true,
       updatedAt: serverTimestamp(),
-    };
+    }
 
-    // 6️⃣ Write to Firestore
-    await setDoc(doc(db, "product_applications", productId), applicationData);
+    // 5️⃣ write to Firestore
+    await setDoc(doc(db, "product_applications", productId), applicationData)
 
-    // 7️⃣ Done
-    sessionStorage.removeItem("productPreviewData");
-    router.push("/success");
+    sessionStorage.removeItem("productPreviewData")
+    router.push("/success")
   } catch (err) {
-    console.error(err);
-    alert("Hata oluştu. Lütfen tekrar deneyin.");
+    console.error(err)
+    alert("Hata oluştu. Lütfen tekrar deneyin.")
   } finally {
-    setIsLoading(false);
+    setIsLoading(false)
   }
-};
+}
+
 
   const DetailRow = ({ title, value }: { title: string; value: string }) => (
     <div className="flex justify-between items-start py-3 border-b border-slate-100 last:border-b-0">
