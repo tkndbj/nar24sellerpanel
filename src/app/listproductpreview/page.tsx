@@ -6,6 +6,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { User } from "firebase/auth";
 
 interface ProductData {
   title: string;
@@ -39,10 +40,21 @@ interface ProductData {
 }
 
 export default function ListProductPreview() {
-  const router = useRouter();
+  const router = useRouter();  
 
   const [productData, setProductData] = useState<ProductData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
+  const [initializing, setInitializing] = useState(true)
+const [user, setUser] = useState<User|null>(null)  
+  const uid = user?.uid;
+
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged(u => {
+      setUser(u)
+      setInitializing(false)
+    })
+    return unsub
+  }, [])
 
   useEffect(() => {
     const savedData = sessionStorage.getItem("productPreviewData");
@@ -130,18 +142,16 @@ export default function ListProductPreview() {
  };
 
  const handleConfirmAndList = async () => {
-  setIsLoading(true)
-  try {
-    if (!productData) throw new Error("Missing data")
-    const user = auth.currentUser!
+
+        setIsLoading(true);
+        try {
+          if (!productData) throw new Error("Missing preview data");
     const productId = crypto.randomUUID()
 
     // 1️⃣ upload main product images
     const imageUrls = await Promise.all(
       productData.images.map(async (file) => {
-        const imgRef = storageRef(
-          storage,
-          `products/${user.uid}/default_images/${Date.now()}_${file.name}`
+        const imgRef = storageRef(storage, `products/${uid}/default_images/${Date.now()}_${file.name}`
         )
         await uploadBytes(imgRef, file)
         return getDownloadURL(imgRef)
@@ -151,9 +161,7 @@ export default function ListProductPreview() {
     // 2️⃣ upload optional video
     let videoUrl: string | null = null
     if (productData.video) {
-      const vidRef = storageRef(
-        storage,
-        `products/${user.uid}/preview_videos/${Date.now()}_${productData.video.name}`
+      const vidRef = storageRef(storage, `products/${uid}/preview_videos/${Date.now()}_${productData.video.name}`
       )
       await uploadBytes(vidRef, productData.video)
       videoUrl = await getDownloadURL(vidRef)
@@ -169,7 +177,7 @@ export default function ListProductPreview() {
       if (info.image) {
         const colRef = storageRef(
           storage,
-          `products/${user.uid}/color_images/${Date.now()}_${color}.jpg`
+          `products/${uid}/color_images/${Date.now()}_${color}.jpg`
         )
         await uploadBytes(colRef, info.image)
         imageUrl = await getDownloadURL(colRef)
@@ -211,7 +219,7 @@ export default function ListProductPreview() {
       ibanOwnerName: productData.ibanOwnerName,
       ibanOwnerSurname: productData.ibanOwnerSurname,
       iban: productData.iban,
-      ownerId: user.uid,
+      ownerId: uid,
       needsSync: true,
       updatedAt: serverTimestamp(),
     }
@@ -563,8 +571,8 @@ export default function ListProductPreview() {
               </button>
 
               <button
-                onClick={handleConfirmAndList}
-                disabled={isLoading}
+      onClick={handleConfirmAndList}
+      disabled={isLoading || initializing}
                 className="flex-1 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <span className="flex items-center justify-center gap-2">
