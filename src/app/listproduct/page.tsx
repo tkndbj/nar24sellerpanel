@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useShop } from "@/context/ShopContext"; 
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 // TODO: Replace these imports with your real data/constants
 import {
@@ -20,6 +23,8 @@ import {
 } from "@/constants/productData";
 
 export default function ListProductForm() {
+  const { selectedShop } = useShop();
+
   // Media
   const [images, setImages] = useState<File[]>([]);
   const [video, setVideo] = useState<File | null>(null);
@@ -405,42 +410,72 @@ export default function ListProductForm() {
         }
       }
 
-      // Prepare data for preview
-      const productData = {
-        title: title.trim(),
-        description: description.trim(),
-        price,
-        quantity,
-        condition,
-        deliveryOption,
-        category,
-        subcategory,
-        subsubcategory,
-        brand,
-        jewelryType,
-        selectedMaterials,
-        selectedPantSizes,
-        selectedClothingSizes,
-        selectedClothingFit,
-        selectedClothingType,
-        selectedFootwearGender,
-        selectedFootwearSizes,
-        selectedGender,
-        selectedColors: colorData,
-        images: imageData,
-        video: videoData,
-      };
-
-      // Store the product data
-      sessionStorage.setItem("productPreviewData", JSON.stringify(productData));
-
-      // Navigate to preview page using Next.js router
-      window.location.href = "/listproductpreview";
+      try {
+        // 1️⃣ fetch seller info from shops/{shopId}/seller_info/info
+        let sellerInfo: any = null;
+        if (selectedShop?.id) {
+          const sellerRef = doc(db, "shops", selectedShop.id, "seller_info", "info");
+          const snap = await getDoc(sellerRef);
+          if (snap.exists()) {
+            sellerInfo = snap.data();
+          }
+        }
+  
+        // 2️⃣ if no shop‐level info, fall back to users/{uid}.sellerInfo
+        if (!sellerInfo) {
+          const user = auth.currentUser;
+          if (user) {
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            sellerInfo = userSnap.exists() ? userSnap.data()?.sellerInfo : null;
+          }
+        }
+  
+        // 3️⃣ build your productData payload
+        const productData = {
+          title: title.trim(),
+          description: description.trim(),
+          price,
+          quantity,
+          condition,
+          deliveryOption,
+          category,
+          subcategory,
+          subsubcategory,
+          brand,
+          jewelryType,
+          selectedMaterials,
+          selectedPantSizes,
+          selectedClothingSizes,
+          selectedClothingFit,
+          selectedClothingType,
+          selectedFootwearGender,
+          selectedFootwearSizes,
+          selectedGender,
+          selectedColors: colorData,
+          images: imageData,
+          video: videoData,
+          // ← merge in what the preview needs to show the seller info:
+          phone:   sellerInfo?.phone   ?? "",
+          region:  sellerInfo?.region  ?? "",
+          address: sellerInfo?.address ?? "",
+          ibanOwnerName:    sellerInfo?.ibanOwnerName    ?? "",
+          ibanOwnerSurname: sellerInfo?.ibanOwnerSurname ?? "",
+          iban:             sellerInfo?.iban             ?? "",
+        };
+  
+        // 4️⃣ then serialize and navigate
+        sessionStorage.setItem("productPreviewData", JSON.stringify(productData));
+        window.location.href = "/listproductpreview";
+      } catch (err) {
+        console.error("Error preparing data:", err);
+        alert("Error preparing data for preview. Please try again.");
+      }
     } catch (error) {
       console.error("Error preparing data:", error);
       alert("Error preparing data for preview. Please try again.");
     }
   };
+  
 
   const UploadIcon = () => (
     <svg

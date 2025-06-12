@@ -30,6 +30,12 @@ interface ProductData {
   selectedColors: { [key: string]: { quantity: string; image: File | null } };
   images: File[];
   video: File | null;
+  phone: string;
+  region: string;
+  address: string;
+  ibanOwnerName: string;
+  ibanOwnerSurname: string;
+  iban: string;
 }
 
 export default function ListProductPreview() {
@@ -439,16 +445,19 @@ export default function ListProductPreview() {
             )}
 
             {/* Seller Information */}
-            <SectionCard title="Seller Information" icon="👤">
-              <DetailRow title="Name" value="John Doe" />
-              <DetailRow title="Phone" value="+90 555 123 4567" />
-              <DetailRow title="Region" value="Istanbul, Turkey" />
-              <DetailRow
-                title="Address"
-                value="Sample Address, Sample District"
-              />
-              <DetailRow title="IBAN" value="TR** **** **** **** **** ****" />
-            </SectionCard>
+<SectionCard title="Seller Information" icon="👤">
+  {/* If you have a full name field, you can render it here; otherwise you can omit this row */}
+  {productData.ibanOwnerName && productData.ibanOwnerSurname && (
+    <DetailRow
+      title="Account Owner"
+      value={`${productData.ibanOwnerName} ${productData.ibanOwnerSurname}`}
+    />
+  )}
+  <DetailRow title="Phone"   value={productData.phone}   />
+  <DetailRow title="Region"  value={productData.region}  />
+  <DetailRow title="Address" value={productData.address} />
+  <DetailRow title="IBAN"    value={productData.iban}    />
+</SectionCard>
 
             {/* Delivery Information */}
             <SectionCard title="Delivery Information" icon="🚚">
