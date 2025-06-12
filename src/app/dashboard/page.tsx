@@ -81,7 +81,7 @@ export default function DashboardPage() {
   const overviewCards = [
     { label: "Products", href: "/products", icon: Package },
     { label: "Orders", href: "/orders", icon: FileText },
-    { label: "Stock", href: "/dashboard/stock", icon: Warehouse },
+    { label: "Stock", href: "/stock", icon: Warehouse },
     { label: "Ads", href: "/dashboard/ads", icon: Megaphone },
     { label: "Reviews", href: "/dashboard/reviews", icon: Star },
     {
