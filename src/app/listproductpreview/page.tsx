@@ -7,6 +7,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { User } from "firebase/auth";
+import { useShop } from "@/context/ShopContext";
 
 interface ProductData {
   title: string;
@@ -47,6 +48,8 @@ export default function ListProductPreview() {
   const [initializing, setInitializing] = useState(true)
 const [user, setUser] = useState<User|null>(null)  
   const uid = user?.uid;
+  const { selectedShop } = useShop();
+  if (!selectedShop) throw new Error("No shop selected");
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(u => {
@@ -210,6 +213,8 @@ const [user, setUser] = useState<User|null>(null)
 
     // 4️⃣ build Firestore payload *without* any File objects
     const applicationData = {
+      productName: productData.title,
+      currency: 'TL',
       title: productData.title,
       description: productData.description,
       price: productData.price,
@@ -241,6 +246,8 @@ const [user, setUser] = useState<User|null>(null)
       iban: productData.iban,
       userId: uid,
       ownerId: uid,
+      shopId: selectedShop.id,
+  ilan_no:            productId,
       needsSync: true,
       updatedAt: serverTimestamp(),
     }
