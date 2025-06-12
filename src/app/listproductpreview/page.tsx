@@ -7,7 +7,7 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "firebase/storage";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { User } from "firebase/auth";
@@ -208,6 +208,9 @@ export default function ListProductPreview() {
       // Array to collect all color image URLs
       const colorImageUrls: string[] = [];
 
+      // Build colorQuantities for inventory management
+      const colorQuantities: Record<string, number> = {};
+
       for (const [color, info] of Object.entries(productData.selectedColors)) {
         let imageUrl: string | null = null;
         if (info.image) {
@@ -218,7 +221,7 @@ export default function ListProductPreview() {
           await uploadBytes(colRef, info.image);
           imageUrl = await getDownloadURL(colRef);
 
-          // 🔥 KEY FIX: Add color image URLs to the main array
+          // Add color image URLs to the main array
           if (imageUrl) {
             colorImageUrls.push(imageUrl);
           }
@@ -227,56 +230,127 @@ export default function ListProductPreview() {
           quantity: info.quantity,
           imageUrl,
         };
+
+        // Add to colorQuantities
+        if (info.quantity) {
+          colorQuantities[color] = parseInt(info.quantity) || 0;
+        }
       }
 
       // 4️⃣ Combine main images + color images into single imageUrls array
-      // This is what Flutter admin screen expects!
       const allImageUrls = [...mainImageUrls, ...colorImageUrls];
 
-      // 5️⃣ build Firestore payload *without* any File objects
+      // 5️⃣ Create searchIndex for searchability
+      const searchTerms = [
+        productData.title.toLowerCase(),
+        productData.description.toLowerCase(),
+        productData.category.toLowerCase(),
+        productData.subcategory.toLowerCase(),
+        productData.subsubcategory.toLowerCase(),
+        productData.brand.toLowerCase(),
+        ...productData.selectedMaterials.map((m) => m.toLowerCase()),
+        ...Object.keys(productData.selectedColors).map((c) => c.toLowerCase()),
+      ].filter((term) => term.trim().length > 0);
+
+      const searchIndex = Array.from(new Set(searchTerms)).join(" ");
+
+      // 6️⃣ Get user info for sellerName
+      const userDoc = await getDoc(doc(db, "users", uid));
+      const userData = userDoc.exists() ? userDoc.data() : {};
+      const sellerName =
+        userData.displayName ||
+        userData.name ||
+        productData.ibanOwnerName ||
+        "Unknown Seller";
+
+      // 7️⃣ Build complete Firestore payload matching Flutter structure
       const applicationData = {
+        // Basic product info
         productName: productData.title,
-        currency: "TL",
         title: productData.title,
         description: productData.description,
         price: productData.price,
         quantity: productData.quantity,
         condition: productData.condition,
         deliveryOption: productData.deliveryOption,
+        currency: "TL",
+
+        // Categories
         category: productData.category,
         subcategory: productData.subcategory,
         subsubcategory: productData.subsubcategory,
         brand: productData.brand,
-        jewelryType: productData.jewelryType,
-        selectedMaterials: productData.selectedMaterials,
-        selectedPantSizes: productData.selectedPantSizes,
-        selectedClothingSizes: productData.selectedClothingSizes,
-        selectedClothingFit: productData.selectedClothingFit,
-        selectedClothingType: productData.selectedClothingType,
-        selectedFootwearGender: productData.selectedFootwearGender,
-        selectedFootwearSizes: productData.selectedFootwearSizes,
-        selectedGender: productData.selectedGender,
+
+        // Jewelry specific
+        jewelryType: productData.jewelryType || "",
+        jewelryMaterials: productData.selectedMaterials || [],
+
+        // Clothing specific
+        clothingSizes: productData.selectedClothingSizes || [],
+        clothingFit: productData.selectedClothingFit || "",
+        clothingType: productData.selectedClothingType || "",
+
+        // Pant specific
+        pantSizes: productData.selectedPantSizes || [],
+
+        // Footwear specific
+        footwearGender: productData.selectedFootwearGender || "",
+        footwearSizes: productData.selectedFootwearSizes || [],
+
+        // Gender and colors
+        gender: productData.selectedGender || "",
         selectedColors: selectedColorsPayload,
+        colorQuantities: colorQuantities,
 
-        // 🔥 KEY FIX: Use combined array instead of just mainImageUrls
+        // Media
         imageUrls: allImageUrls,
+        videoUrl: videoUrl,
 
-        videoUrl,
+        // Seller info
+        sellerName: sellerName,
         phone: productData.phone,
         region: productData.region,
         address: productData.address,
         ibanOwnerName: productData.ibanOwnerName,
         ibanOwnerSurname: productData.ibanOwnerSurname,
         iban: productData.iban,
+
+        // IDs and ownership
         userId: uid,
         ownerId: uid,
         shopId: selectedShop.id,
         ilan_no: productId,
+        id: productId,
+
+        // 🔥 CRITICAL: All the missing fields that Flutter includes
+        averageRating: 0.0,
+        reviewCount: 0,
+        sold: false,
+        isFeatured: false,
+        isTrending: false,
+        isBoosted: false,
+        boostedImpressionCount: 0,
+        boostImpressionCountAtStart: 0,
+        boostClickCountAtStart: 0,
+        rankingScore: 0,
+        paused: false,
+        boostStartTime: null,
+        boostEndTime: null,
+        dailyClickCount: 0,
+        clickCountAtStart: 0,
+        lastClickDate: null,
+        searchIndex: searchIndex,
+
+        // Timestamps and sync
+        createdAt: serverTimestamp(),
         needsSync: true,
         updatedAt: serverTimestamp(),
+
+        // Additional fields that might be needed
+        relatedProductIds: [],
       };
 
-      // 6️⃣ write to Firestore
+      // 8️⃣ write to Firestore
       await setDoc(doc(db, "product_applications", productId), applicationData);
 
       sessionStorage.removeItem("productPreviewData");
