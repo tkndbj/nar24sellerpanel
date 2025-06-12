@@ -90,6 +90,10 @@ export default function OrdersPage() {
     })();
   }, [selectedShop]);
 
+  const handleGoBack = () => {
+    window.history.back();
+  };
+
   if (!selectedShop) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-24">
@@ -138,13 +142,34 @@ export default function OrdersPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen w-full">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 pt-24">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">
-          Siparişler — {selectedShop.name}
-        </h1>
+      <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-16 pt-24">
+        <div className="flex items-center mb-8 px-4 sm:px-0">
+          <button
+            onClick={handleGoBack}
+            className="mr-3 p-2 rounded-full hover:bg-gray-200 transition-colors duration-200"
+            aria-label="Geri dön"
+          >
+            <svg
+              className="w-6 h-6 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Siparişler — {selectedShop.name}
+          </h1>
+        </div>
 
         {orders.length === 0 ? (
-          <p className="text-gray-600 text-lg font-medium">
+          <p className="text-gray-600 text-lg font-medium px-4 sm:px-0">
             Bu mağaza için sipariş bulunamadı.
           </p>
         ) : (

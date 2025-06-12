@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Search, Filter, Package, AlertTriangle, Edit3, X, RefreshCw, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -53,6 +53,27 @@ colorOptions.forEach(color => {
 
 const PAGE_SIZE = 20;
 
+// Helper function to get dropdown position
+const getDropdownPosition = (buttonElement: HTMLButtonElement | null) => {
+  if (!buttonElement) return {};
+  
+  const rect = buttonElement.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  const dropdownHeight = 256; // max height of dropdown
+  
+  // Check if dropdown would overflow viewport
+  const spaceBelow = viewportHeight - rect.bottom;
+  const shouldShowAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+  
+  return {
+    position: 'fixed' as const,
+    left: rect.left,
+    top: shouldShowAbove ? rect.top - dropdownHeight - 8 : rect.bottom + 8,
+    width: Math.max(rect.width, 256),
+    zIndex: 9999,
+  };
+};
+
 // Main Component
 export default function StockPage() {
   const router = useRouter();
@@ -76,24 +97,33 @@ export default function StockPage() {
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  const categoryButtonRef = useRef<HTMLButtonElement>(null);
+  const subcategoryButtonRef = useRef<HTMLButtonElement>(null);
+  const subSubcategoryButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll when modal is open - improved mobile handling
   useEffect(() => {
-    if (updateDialogOpen || showCategoryDropdown || showSubcategoryDropdown || showSubSubcategoryDropdown) {
+    const anyModalOpen = updateDialogOpen || showCategoryDropdown || showSubcategoryDropdown || showSubSubcategoryDropdown;
+    
+    if (anyModalOpen) {
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      
+      // Prevent scrolling on body
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
+      
+      return () => {
+        // Restore body styles and scroll position
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        window.scrollTo(0, scrollY);
+      };
     }
-    
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    };
   }, [updateDialogOpen, showCategoryDropdown, showSubcategoryDropdown, showSubSubcategoryDropdown]);
 
   // Get available subcategories for selected category
@@ -464,11 +494,12 @@ export default function StockPage() {
           )}
 
           {/* Filters - Horizontal scroll on mobile */}
-          <div className="overflow-x-auto">
-            <div className="flex gap-2 sm:gap-3 pb-2 min-w-max sm:min-w-0 sm:flex-wrap">
+          <div className="overflow-x-auto sm:overflow-visible">
+            <div className="flex gap-2 sm:gap-3 pb-2 min-w-max sm:min-w-0 sm:flex-wrap sm:pb-4">
               {/* Category Filter */}
               <div className="relative flex-shrink-0">
                 <button
+                  ref={categoryButtonRef}
                   onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                   className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors min-w-[140px] sm:min-w-[160px] text-left"
                 >
@@ -477,62 +508,13 @@ export default function StockPage() {
                     {selectedCategory || 'Kategori Seç'}
                   </span>
                 </button>
-                
-                {/* Mobile Category Modal/Dropdown */}
-                {showCategoryDropdown && (
-                  <>
-                    {/* Mobile backdrop */}
-                    <div 
-                      className="fixed inset-0 bg-gray-800 bg-opacity-75 z-40 sm:hidden" 
-                      onClick={() => setShowCategoryDropdown(false)}
-                    />
-                    
-                    {/* Dropdown/Modal */}
-                    <div className={`
-                      ${/* Mobile: modal style */ ''}
-                      sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:w-64 sm:rounded-xl sm:shadow-xl sm:z-50
-                      ${/* Mobile: full screen modal */ ''}
-                      fixed sm:relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:transform-none
-                      w-[90vw] max-w-sm sm:max-w-none h-auto max-h-[70vh] sm:max-h-64
-                      bg-white border border-gray-200 z-50 overflow-y-auto
-                      rounded-2xl sm:rounded-xl shadow-2xl sm:shadow-xl
-                      animate-in slide-in-from-top-2 duration-200
-                    `}>
-                      {/* Mobile header */}
-                      <div className="sm:hidden flex items-center justify-between p-4 border-b border-gray-100">
-                        <h3 className="text-lg font-semibold text-gray-900">Kategori Seç</h3>
-                        <button
-                          onClick={() => setShowCategoryDropdown(false)}
-                          className="p-1 hover:bg-gray-100 rounded-full"
-                        >
-                          <X className="w-5 h-5 text-gray-500" />
-                        </button>
-                      </div>
-                      
-                      <button
-                        onClick={() => handleCategorySelect(null)}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 border-b border-gray-100"
-                      >
-                        Tümü
-                      </button>
-                      {categories.map((category) => (
-                        <button
-                          key={category.key}
-                          onClick={() => handleCategorySelect(category.key)}
-                          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900"
-                        >
-                          {category.key}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
               </div>
 
               {/* Subcategory Filter */}
               {selectedCategory && availableSubcategories.length > 0 && (
                 <div className="relative animate-in slide-in-from-left duration-300 flex-shrink-0">
                   <button
+                    ref={subcategoryButtonRef}
                     onClick={() => setShowSubcategoryDropdown(!showSubcategoryDropdown)}
                     className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-colors min-w-[140px] sm:min-w-[160px] text-left"
                   >
@@ -540,55 +522,6 @@ export default function StockPage() {
                       {selectedSubcategory || 'Alt Kategori Seç'}
                     </span>
                   </button>
-                  
-                  {showSubcategoryDropdown && (
-                    <>
-                      {/* Mobile backdrop */}
-                      <div 
-                        className="fixed inset-0 bg-gray-800 bg-opacity-75 z-40 sm:hidden" 
-                        onClick={() => setShowSubcategoryDropdown(false)}
-                      />
-                      
-                      {/* Dropdown/Modal */}
-                      <div className={`
-                        ${/* Mobile: modal style */ ''}
-                        sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:w-64 sm:rounded-xl sm:shadow-xl sm:z-50
-                        ${/* Mobile: full screen modal */ ''}
-                        fixed sm:relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:transform-none
-                        w-[90vw] max-w-sm sm:max-w-none h-auto max-h-[70vh] sm:max-h-64
-                        bg-white border border-gray-200 z-50 overflow-y-auto
-                        rounded-2xl sm:rounded-xl shadow-2xl sm:shadow-xl
-                        animate-in slide-in-from-top-2 duration-200
-                      `}>
-                        {/* Mobile header */}
-                        <div className="sm:hidden flex items-center justify-between p-4 border-b border-gray-100">
-                          <h3 className="text-lg font-semibold text-gray-900">Alt Kategori Seç</h3>
-                          <button
-                            onClick={() => setShowSubcategoryDropdown(false)}
-                            className="p-1 hover:bg-gray-100 rounded-full"
-                          >
-                            <X className="w-5 h-5 text-gray-500" />
-                          </button>
-                        </div>
-                        
-                        <button
-                          onClick={() => handleSubcategorySelect(null)}
-                          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 border-b border-gray-100"
-                        >
-                          Tümü
-                        </button>
-                        {availableSubcategories.map((subcategory) => (
-                          <button
-                            key={subcategory}
-                            onClick={() => handleSubcategorySelect(subcategory)}
-                            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900"
-                          >
-                            {subcategory}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
                 </div>
               )}
 
@@ -596,6 +529,7 @@ export default function StockPage() {
               {selectedSubcategory && availableSubSubcategories.length > 0 && (
                 <div className="relative animate-in slide-in-from-left duration-300 flex-shrink-0">
                   <button
+                    ref={subSubcategoryButtonRef}
                     onClick={() => setShowSubSubcategoryDropdown(!showSubSubcategoryDropdown)}
                     className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-xl hover:bg-purple-100 transition-colors min-w-[140px] sm:min-w-[160px] text-left"
                   >
@@ -603,55 +537,6 @@ export default function StockPage() {
                       {selectedSubSubcategory || 'Alt Alt Kategori Seç'}
                     </span>
                   </button>
-                  
-                  {showSubSubcategoryDropdown && (
-                    <>
-                      {/* Mobile backdrop */}
-                      <div 
-                        className="fixed inset-0 bg-gray-800 bg-opacity-75 z-40 sm:hidden" 
-                        onClick={() => setShowSubSubcategoryDropdown(false)}
-                      />
-                      
-                      {/* Dropdown/Modal */}
-                      <div className={`
-                        ${/* Mobile: modal style */ ''}
-                        sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:w-64 sm:rounded-xl sm:shadow-xl sm:z-50
-                        ${/* Mobile: full screen modal */ ''}
-                        fixed sm:relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:transform-none
-                        w-[90vw] max-w-sm sm:max-w-none h-auto max-h-[70vh] sm:max-h-64
-                        bg-white border border-gray-200 z-50 overflow-y-auto
-                        rounded-2xl sm:rounded-xl shadow-2xl sm:shadow-xl
-                        animate-in slide-in-from-top-2 duration-200
-                      `}>
-                        {/* Mobile header */}
-                        <div className="sm:hidden flex items-center justify-between p-4 border-b border-gray-100">
-                          <h3 className="text-lg font-semibold text-gray-900">Alt Alt Kategori Seç</h3>
-                          <button
-                            onClick={() => setShowSubSubcategoryDropdown(false)}
-                            className="p-1 hover:bg-gray-100 rounded-full"
-                          >
-                            <X className="w-5 h-5 text-gray-500" />
-                          </button>
-                        </div>
-                        
-                        <button
-                          onClick={() => handleSubSubcategorySelect(null)}
-                          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 border-b border-gray-100"
-                        >
-                          Tümü
-                        </button>
-                        {availableSubSubcategories.map((subSubcategory) => (
-                          <button
-                            key={subSubcategory}
-                            onClick={() => handleSubSubcategorySelect(subSubcategory)}
-                            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900"
-                          >
-                            {subSubcategory}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
                 </div>
               )}
 
@@ -766,6 +651,241 @@ export default function StockPage() {
           />
         )}
       </div>
+
+      {/* Portal for Dropdowns - Outside the scrollable container */}
+      {/* Category Modal/Dropdown */}
+      {showCategoryDropdown && (
+        <>
+          {/* Mobile backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/30 sm:bg-transparent z-40" 
+            onClick={() => setShowCategoryDropdown(false)}
+          />
+          
+          {/* Dropdown/Modal */}
+          <div 
+            className={`
+            ${/* Desktop: fixed positioned dropdown */ ''}
+            hidden sm:block
+            bg-white border border-gray-200 rounded-xl shadow-xl
+            max-h-64 overflow-y-auto z-[9999]
+            animate-in slide-in-from-top-2 duration-200
+          `}
+            style={getDropdownPosition(categoryButtonRef.current)}
+          >
+            <button
+              onClick={() => handleCategorySelect(null)}
+              className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium border-b border-gray-100"
+            >
+              Tümü
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category.key}
+                onClick={() => handleCategorySelect(category.key)}
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium"
+              >
+                {category.key}
+              </button>
+            ))}
+          </div>
+          
+          {/* Mobile modal */}
+          <div 
+            className={`
+            sm:hidden
+            fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+            w-[90vw] max-w-sm h-auto max-h-[70vh]
+            bg-white border border-gray-200 z-[9999] overflow-y-auto
+            rounded-2xl shadow-2xl
+            animate-in slide-in-from-top-2 duration-200
+          `}
+          >
+            {/* Mobile header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Kategori Seç</h3>
+              <button
+                onClick={() => setShowCategoryDropdown(false)}
+                className="p-1 hover:bg-gray-100 rounded-full"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <button
+              onClick={() => handleCategorySelect(null)}
+              className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium border-b border-gray-100"
+            >
+              Tümü
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category.key}
+                onClick={() => handleCategorySelect(category.key)}
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium"
+              >
+                {category.key}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Subcategory Modal/Dropdown */}
+      {showSubcategoryDropdown && (
+        <>
+          {/* Mobile backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/30 sm:bg-transparent z-40" 
+            onClick={() => setShowSubcategoryDropdown(false)}
+          />
+          
+          {/* Dropdown/Modal */}
+          <div 
+            className={`
+            ${/* Desktop: fixed positioned dropdown */ ''}
+            hidden sm:block
+            bg-white border border-gray-200 rounded-xl shadow-xl
+            max-h-64 overflow-y-auto z-[9999]
+            animate-in slide-in-from-top-2 duration-200
+          `}
+            style={getDropdownPosition(subcategoryButtonRef.current)}
+          >
+            <button
+              onClick={() => handleSubcategorySelect(null)}
+              className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium border-b border-gray-100"
+            >
+              Tümü
+            </button>
+            {availableSubcategories.map((subcategory) => (
+              <button
+                key={subcategory}
+                onClick={() => handleSubcategorySelect(subcategory)}
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium"
+              >
+                {subcategory}
+              </button>
+            ))}
+          </div>
+          
+          {/* Mobile modal */}
+          <div 
+            className={`
+            sm:hidden
+            fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+            w-[90vw] max-w-sm h-auto max-h-[70vh]
+            bg-white border border-gray-200 z-[9999] overflow-y-auto
+            rounded-2xl shadow-2xl
+            animate-in slide-in-from-top-2 duration-200
+          `}
+          >
+            {/* Mobile header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Alt Kategori Seç</h3>
+              <button
+                onClick={() => setShowSubcategoryDropdown(false)}
+                className="p-1 hover:bg-gray-100 rounded-full"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <button
+              onClick={() => handleSubcategorySelect(null)}
+              className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium border-b border-gray-100"
+            >
+              Tümü
+            </button>
+            {availableSubcategories.map((subcategory) => (
+              <button
+                key={subcategory}
+                onClick={() => handleSubcategorySelect(subcategory)}
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium"
+              >
+                {subcategory}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Sub-Subcategory Modal/Dropdown */}
+      {showSubSubcategoryDropdown && (
+        <>
+          {/* Mobile backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/30 sm:bg-transparent z-40" 
+            onClick={() => setShowSubSubcategoryDropdown(false)}
+          />
+          
+          {/* Dropdown/Modal */}
+          <div 
+            className={`
+            ${/* Desktop: fixed positioned dropdown */ ''}
+            hidden sm:block
+            bg-white border border-gray-200 rounded-xl shadow-xl
+            max-h-64 overflow-y-auto z-[9999]
+            animate-in slide-in-from-top-2 duration-200
+          `}
+            style={getDropdownPosition(subSubcategoryButtonRef.current)}
+          >
+            <button
+              onClick={() => handleSubSubcategorySelect(null)}
+              className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium border-b border-gray-100"
+            >
+              Tümü
+            </button>
+            {availableSubSubcategories.map((subSubcategory) => (
+              <button
+                key={subSubcategory}
+                onClick={() => handleSubSubcategorySelect(subSubcategory)}
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium"
+              >
+                {subSubcategory}
+              </button>
+            ))}
+          </div>
+          
+          {/* Mobile modal */}
+          <div 
+            className={`
+            sm:hidden
+            fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+            w-[90vw] max-w-sm h-auto max-h-[70vh]
+            bg-white border border-gray-200 z-[9999] overflow-y-auto
+            rounded-2xl shadow-2xl
+            animate-in slide-in-from-top-2 duration-200
+          `}
+          >
+            {/* Mobile header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Alt Alt Kategori Seç</h3>
+              <button
+                onClick={() => setShowSubSubcategoryDropdown(false)}
+                className="p-1 hover:bg-gray-100 rounded-full"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <button
+              onClick={() => handleSubSubcategorySelect(null)}
+              className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium border-b border-gray-100"
+            >
+              Tümü
+            </button>
+            {availableSubSubcategories.map((subSubcategory) => (
+              <button
+                key={subSubcategory}
+                onClick={() => handleSubSubcategorySelect(subSubcategory)}
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium"
+              >
+                {subSubcategory}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -795,7 +915,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const displayImage = getValidImageUrl(product);
 
   return (
-    <div className={`bg-white rounded-none sm:rounded-2xl shadow-lg border-0 sm:border-2 transition-all hover:shadow-xl mx-0 sm:mx-0 mb-2 sm:mb-0 ${
+    <div className={`bg-white rounded-none sm:rounded-2xl shadow-lg border-0 sm:border-2 transition-all hover:shadow-xl mx-0 sm:mx-0 mb-2 sm:mb-4 ${
       isOutOfStock ? 'border-red-400 bg-red-50' : 'sm:border-gray-100 hover:border-blue-200'
     }`}>
       <div className="p-3 sm:p-6">
@@ -952,11 +1072,19 @@ const UpdateQuantityDialog: React.FC<UpdateQuantityDialogProps> = ({
     }
   };
 
+  // Prevent scroll propagation to background
+  const handleModalScroll = (e: React.UIEvent) => {
+    e.stopPropagation();
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl mx-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div 
+        className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl mx-4 max-h-[90vh] overflow-y-auto"
+        onScroll={handleModalScroll}
+      >
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <h3 className="text-lg sm:text-xl font-bold text-gray-900 pr-4">
             Stok Miktarını Güncelle
