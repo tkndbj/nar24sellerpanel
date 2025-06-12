@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { auth, db, storage } from "@/lib/firebase";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -118,28 +121,72 @@ export default function ListProductPreview() {
     // Don't clear the data when going back to edit
     // sessionStorage data will remain for restoration
     router.push("/listproduct");
-  };
+ };
 
-  const handleConfirmAndList = async () => {
-    setIsLoading(true);
-
-    try {
-      // Here you would upload images and submit to your backend
-      // For now, we'll simulate the process
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Clear the preview data only after successful submission
-      sessionStorage.removeItem("productPreviewData");
-
-      // Navigate to success page
-      router.push("/success");
-    } catch (error) {
-      console.error("Error submitting product:", error);
-      alert("Error submitting product. Please try again.");
-    } finally {
+ const handleConfirmAndList = async () => {
+  setIsLoading(true);
+  try {
+    if (!productData) {
+      alert("Ürün verisi eksik, lütfen yeniden deneyin.");
       setIsLoading(false);
+      return;
     }
-  };
+    // now TS knows productData is non-null
+    const data = productData;
+
+    // 1️⃣ Generate ID
+    const productId = crypto.randomUUID();
+
+    // 2️⃣ Ensure user
+    const user = auth.currentUser;
+    if (!user) throw new Error("You must be signed in…");
+
+    // 3️⃣ Upload images
+    const imageUrls = await Promise.all(
+      data.images.map(async (file) => {
+        const imgRef = storageRef(
+          storage,
+          `products/${user.uid}/default_images/${Date.now()}_${file.name}`
+        );
+        await uploadBytes(imgRef, file);
+        return getDownloadURL(imgRef);
+      })
+    );
+
+    // 4️⃣ Video
+    let videoUrl: string | null = null;
+    if (data.video) {
+      const vidRef = storageRef(
+        storage,
+        `products/${user.uid}/preview_videos/${Date.now()}_${data.video.name}`
+      );
+      await uploadBytes(vidRef, data.video);
+      videoUrl = await getDownloadURL(vidRef);
+    }
+
+    // 5️⃣ Firestore payload
+    const applicationData = {
+      ...data,
+      imageUrls,
+      videoUrl,
+      ownerId: user.uid,
+      needsSync: true,
+      updatedAt: serverTimestamp(),
+    };
+
+    // 6️⃣ Write to Firestore
+    await setDoc(doc(db, "product_applications", productId), applicationData);
+
+    // 7️⃣ Done
+    sessionStorage.removeItem("productPreviewData");
+    router.push("/success");
+  } catch (err) {
+    console.error(err);
+    alert("Hata oluştu. Lütfen tekrar deneyin.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const DetailRow = ({ title, value }: { title: string; value: string }) => (
     <div className="flex justify-between items-start py-3 border-b border-slate-100 last:border-b-0">
