@@ -25,21 +25,7 @@ import {
 export default function ListProductForm() {
   const { selectedShop, loadingShops } = useShop();
 
-  const router = useRouter();
-
-  if (loadingShops) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading your shops…</p>
-      </div>
-    );
-  }
-
-  // 2️⃣ no shop? send them back (shouldn’t happen if they’re authorized)
-  if (!selectedShop) {
-    router.push("/");
-    return null;
-  }
+  const router = useRouter(); 
 
   // Media
   const [images, setImages] = useState<File[]>([]);
@@ -302,6 +288,20 @@ export default function ListProductForm() {
       setSelectedColors({});
     }
   }, [subsubcategory, isRestoring]);
+
+  if (loadingShops) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading your shops…</p>
+      </div>
+    );
+  }
+
+  // 2️⃣ no shop? send them back (shouldn’t happen if they’re authorized)
+  if (!selectedShop) {
+    router.push("/");
+    return null;
+  }
 
   // Color handlers
   const toggleColor = (color: string) => {
