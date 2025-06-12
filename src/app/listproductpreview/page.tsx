@@ -252,14 +252,40 @@ export default function ListProductPreview() {
 
       const searchIndexArray = Array.from(new Set(searchTerms));
 
-      // 5️⃣ Get user info for sellerName
-      const userDoc = await getDoc(doc(db, "users", uid));
-      const userData = userDoc.exists() ? userDoc.data() : {};
-      const sellerName =
-        userData.displayName ||
-        userData.name ||
-        productData.ibanOwnerName ||
-        "Unknown Seller";
+      // 5️⃣ Get seller name - CRITICAL FIX HERE!
+      let sellerName = "Unknown Seller";
+
+      // 🔥 If shopId is present, use shop's name as seller name
+      if (selectedShop?.id) {
+        try {
+          // First try to get shop's name from shop document
+          const shopDoc = await getDoc(doc(db, "shops", selectedShop.id));
+          if (shopDoc.exists()) {
+            const shopData = shopDoc.data();
+            sellerName =
+              shopData?.name ||
+              shopData?.shopName ||
+              selectedShop.name ||
+              "Unknown Shop";
+          } else {
+            // Fallback to selectedShop name from context
+            sellerName = selectedShop.name || "Unknown Shop";
+          }
+        } catch (error) {
+          console.warn("Error fetching shop name:", error);
+          // Fallback to selectedShop name from context
+          sellerName = selectedShop.name || "Unknown Shop";
+        }
+      } else {
+        // Only fall back to user info if no shop is selected (which shouldn't happen in this flow)
+        const userDoc = await getDoc(doc(db, "users", uid));
+        const userData = userDoc.exists() ? userDoc.data() : {};
+        sellerName =
+          userData.displayName ||
+          userData.name ||
+          productData.ibanOwnerName ||
+          "Unknown Seller";
+      }
 
       // 6️⃣ Helper functions to ensure correct data types
       const ensureStringArray = (value: unknown): string[] => {
@@ -315,6 +341,8 @@ export default function ListProductPreview() {
         ownerId: uid,
         shopId: selectedShop.id,
         ilan_no: productId,
+
+        // 🔥 CRITICAL FIX: Use shop name when shopId is present
         sellerName: sellerName,
 
         // Categories
