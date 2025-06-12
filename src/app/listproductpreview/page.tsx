@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { auth, db, storage } from "@/lib/firebase";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -41,29 +45,29 @@ interface ProductData {
 }
 
 export default function ListProductPreview() {
-  const router = useRouter();  
+  const router = useRouter();
 
   const [productData, setProductData] = useState<ProductData | null>(null);
-  const [isLoading, setIsLoading] = useState(false); 
-  const [initializing, setInitializing] = useState(true)
-const [user, setUser] = useState<User|null>(null)  
+  const [isLoading, setIsLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
   const uid = user?.uid;
   const { selectedShop } = useShop();
   if (!selectedShop) throw new Error("No shop selected");
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged(u => {
-      setUser(u)
-      setInitializing(false)
-    })
-    return unsub
-  }, [])
+    const unsub = auth.onAuthStateChanged((u) => {
+      setUser(u);
+      setInitializing(false);
+    });
+    return unsub;
+  }, []);
 
   useEffect(() => {
     if (!initializing && !user) {
-      router.push("/")
+      router.push("/");
     }
-  }, [initializing, user, router])
+  }, [initializing, user, router]);
 
   useEffect(() => {
     const savedData = sessionStorage.getItem("productPreviewData");
@@ -143,128 +147,147 @@ const [user, setUser] = useState<User|null>(null)
       router.push("/listproduct");
     }
   }, [router]);
-  
+
   // 2️⃣ Show a loading screen until we know the auth state
   if (initializing) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>Checking authentication…</p>
       </div>
-    )
-  } 
+    );
+  }
 
   const handleEdit = () => {
     // Don't clear the data when going back to edit
     // sessionStorage data will remain for restoration
     router.push("/listproduct");
- };
+  };
 
- const handleConfirmAndList = async () => {
-  if (!uid) {
-    // shouldn't happen, but defend anyway
-    alert("Lütfen önce giriş yapın.")
-    return
-  }
-
-        setIsLoading(true);
-        try {
-          if (!productData) throw new Error("Missing preview data");
-    const productId = crypto.randomUUID()
-
-    // 1️⃣ upload main product images
-    const imageUrls = await Promise.all(
-      productData.images.map(async (file) => {
-        const imgRef = storageRef(storage, `products/${uid}/default_images/${Date.now()}_${file.name}`
-        )
-        await uploadBytes(imgRef, file)
-        return getDownloadURL(imgRef)
-      })
-    )
-
-    // 2️⃣ upload optional video
-    let videoUrl: string | null = null
-    if (productData.video) {
-      const vidRef = storageRef(storage, `products/${uid}/preview_videos/${Date.now()}_${productData.video.name}`
-      )
-      await uploadBytes(vidRef, productData.video)
-      videoUrl = await getDownloadURL(vidRef)
+  const handleConfirmAndList = async () => {
+    if (!uid) {
+      alert("Lütfen önce giriş yapın.");
+      return;
     }
 
-    // 3️⃣ upload each selected‐color image
-    const selectedColorsPayload: Record<
-      string,
-      { quantity: string; imageUrl: string | null }
-    > = {}
-    for (const [color, info] of Object.entries(productData.selectedColors)) {
-      let imageUrl: string | null = null
-      if (info.image) {
-        const colRef = storageRef(
+    setIsLoading(true);
+    try {
+      if (!productData) throw new Error("Missing preview data");
+      const productId = crypto.randomUUID();
+
+      // 1️⃣ upload main product images
+      const mainImageUrls = await Promise.all(
+        productData.images.map(async (file) => {
+          const imgRef = storageRef(
+            storage,
+            `products/${uid}/default_images/${Date.now()}_${file.name}`
+          );
+          await uploadBytes(imgRef, file);
+          return getDownloadURL(imgRef);
+        })
+      );
+
+      // 2️⃣ upload optional video
+      let videoUrl: string | null = null;
+      if (productData.video) {
+        const vidRef = storageRef(
           storage,
-          `products/${uid}/color_images/${Date.now()}_${color}.jpg`
-        )
-        await uploadBytes(colRef, info.image)
-        imageUrl = await getDownloadURL(colRef)
+          `products/${uid}/preview_videos/${Date.now()}_${
+            productData.video.name
+          }`
+        );
+        await uploadBytes(vidRef, productData.video);
+        videoUrl = await getDownloadURL(vidRef);
       }
-      selectedColorsPayload[color] = {
-        quantity: info.quantity,
-        imageUrl,
+
+      // 3️⃣ upload each selected‐color image AND collect their URLs
+      const selectedColorsPayload: Record<
+        string,
+        { quantity: string; imageUrl: string | null }
+      > = {};
+
+      // Array to collect all color image URLs
+      const colorImageUrls: string[] = [];
+
+      for (const [color, info] of Object.entries(productData.selectedColors)) {
+        let imageUrl: string | null = null;
+        if (info.image) {
+          const colRef = storageRef(
+            storage,
+            `products/${uid}/color_images/${Date.now()}_${color}.jpg`
+          );
+          await uploadBytes(colRef, info.image);
+          imageUrl = await getDownloadURL(colRef);
+
+          // 🔥 KEY FIX: Add color image URLs to the main array
+          if (imageUrl) {
+            colorImageUrls.push(imageUrl);
+          }
+        }
+        selectedColorsPayload[color] = {
+          quantity: info.quantity,
+          imageUrl,
+        };
       }
+
+      // 4️⃣ Combine main images + color images into single imageUrls array
+      // This is what Flutter admin screen expects!
+      const allImageUrls = [...mainImageUrls, ...colorImageUrls];
+
+      // 5️⃣ build Firestore payload *without* any File objects
+      const applicationData = {
+        productName: productData.title,
+        currency: "TL",
+        title: productData.title,
+        description: productData.description,
+        price: productData.price,
+        quantity: productData.quantity,
+        condition: productData.condition,
+        deliveryOption: productData.deliveryOption,
+        category: productData.category,
+        subcategory: productData.subcategory,
+        subsubcategory: productData.subsubcategory,
+        brand: productData.brand,
+        jewelryType: productData.jewelryType,
+        selectedMaterials: productData.selectedMaterials,
+        selectedPantSizes: productData.selectedPantSizes,
+        selectedClothingSizes: productData.selectedClothingSizes,
+        selectedClothingFit: productData.selectedClothingFit,
+        selectedClothingType: productData.selectedClothingType,
+        selectedFootwearGender: productData.selectedFootwearGender,
+        selectedFootwearSizes: productData.selectedFootwearSizes,
+        selectedGender: productData.selectedGender,
+        selectedColors: selectedColorsPayload,
+
+        // 🔥 KEY FIX: Use combined array instead of just mainImageUrls
+        imageUrls: allImageUrls,
+
+        videoUrl,
+        phone: productData.phone,
+        region: productData.region,
+        address: productData.address,
+        ibanOwnerName: productData.ibanOwnerName,
+        ibanOwnerSurname: productData.ibanOwnerSurname,
+        iban: productData.iban,
+        userId: uid,
+        ownerId: uid,
+        shopId: selectedShop.id,
+        ilan_no: productId,
+        needsSync: true,
+        updatedAt: serverTimestamp(),
+      };
+
+      // 6️⃣ write to Firestore
+      await setDoc(doc(db, "product_applications", productId), applicationData);
+
+      sessionStorage.removeItem("productPreviewData");
+      router.push("/success");
+    } catch (err) {
+      console.error(err);
+      alert("Hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setIsLoading(false);
     }
-
-    // 4️⃣ build Firestore payload *without* any File objects
-    const applicationData = {
-      productName: productData.title,
-      currency: 'TL',
-      title: productData.title,
-      description: productData.description,
-      price: productData.price,
-      quantity: productData.quantity,
-      condition: productData.condition,
-      deliveryOption: productData.deliveryOption,
-      category: productData.category,
-      subcategory: productData.subcategory,
-      subsubcategory: productData.subsubcategory,
-      brand: productData.brand,
-      jewelryType: productData.jewelryType,
-      selectedMaterials: productData.selectedMaterials,
-      selectedPantSizes: productData.selectedPantSizes,
-      selectedClothingSizes: productData.selectedClothingSizes,
-      selectedClothingFit: productData.selectedClothingFit,
-      selectedClothingType: productData.selectedClothingType,
-      selectedFootwearGender: productData.selectedFootwearGender,
-      selectedFootwearSizes: productData.selectedFootwearSizes,
-      selectedGender: productData.selectedGender,
-      // **here’s the key change**:
-      selectedColors: selectedColorsPayload,
-      imageUrls,
-      videoUrl,
-      phone: productData.phone,
-      region: productData.region,
-      address: productData.address,
-      ibanOwnerName: productData.ibanOwnerName,
-      ibanOwnerSurname: productData.ibanOwnerSurname,
-      iban: productData.iban,
-      userId: uid,
-      ownerId: uid,
-      shopId: selectedShop.id,
-  ilan_no:            productId,
-      needsSync: true,
-      updatedAt: serverTimestamp(),
-    }
-
-    // 5️⃣ write to Firestore
-    await setDoc(doc(db, "product_applications", productId), applicationData)
-
-    sessionStorage.removeItem("productPreviewData")
-    router.push("/success")
-  } catch (err) {
-    console.error(err)
-    alert("Hata oluştu. Lütfen tekrar deneyin.")
-  } finally {
-    setIsLoading(false)
-  }
-}
-
+  };
 
   const DetailRow = ({ title, value }: { title: string; value: string }) => (
     <div className="flex justify-between items-start py-3 border-b border-slate-100 last:border-b-0">
@@ -517,19 +540,19 @@ const [user, setUser] = useState<User|null>(null)
             )}
 
             {/* Seller Information */}
-<SectionCard title="Seller Information" icon="👤">
-  {/* If you have a full name field, you can render it here; otherwise you can omit this row */}
-  {productData.ibanOwnerName && productData.ibanOwnerSurname && (
-    <DetailRow
-      title="Account Owner"
-      value={`${productData.ibanOwnerName} ${productData.ibanOwnerSurname}`}
-    />
-  )}
-  <DetailRow title="Phone"   value={productData.phone}   />
-  <DetailRow title="Region"  value={productData.region}  />
-  <DetailRow title="Address" value={productData.address} />
-  <DetailRow title="IBAN"    value={productData.iban}    />
-</SectionCard>
+            <SectionCard title="Seller Information" icon="👤">
+              {/* If you have a full name field, you can render it here; otherwise you can omit this row */}
+              {productData.ibanOwnerName && productData.ibanOwnerSurname && (
+                <DetailRow
+                  title="Account Owner"
+                  value={`${productData.ibanOwnerName} ${productData.ibanOwnerSurname}`}
+                />
+              )}
+              <DetailRow title="Phone" value={productData.phone} />
+              <DetailRow title="Region" value={productData.region} />
+              <DetailRow title="Address" value={productData.address} />
+              <DetailRow title="IBAN" value={productData.iban} />
+            </SectionCard>
 
             {/* Delivery Information */}
             <SectionCard title="Delivery Information" icon="🚚">
@@ -599,8 +622,8 @@ const [user, setUser] = useState<User|null>(null)
               </button>
 
               <button
-      onClick={handleConfirmAndList}
-      disabled={isLoading || initializing}
+                onClick={handleConfirmAndList}
+                disabled={isLoading || initializing}
                 className="flex-1 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <span className="flex items-center justify-center gap-2">
