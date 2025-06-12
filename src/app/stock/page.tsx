@@ -77,6 +77,25 @@ export default function StockPage() {
   const [hasMore, setHasMore] = useState(false);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (updateDialogOpen || showCategoryDropdown || showSubcategoryDropdown || showSubSubcategoryDropdown) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [updateDialogOpen, showCategoryDropdown, showSubcategoryDropdown, showSubSubcategoryDropdown]);
+
   // Get available subcategories for selected category
   const availableSubcategories = useMemo(() => {
     if (!selectedCategory) return [];
@@ -464,14 +483,14 @@ export default function StockPage() {
                   <>
                     {/* Mobile backdrop */}
                     <div 
-                      className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden" 
+                      className="fixed inset-0 bg-gray-800 bg-opacity-75 z-40 sm:hidden" 
                       onClick={() => setShowCategoryDropdown(false)}
                     />
                     
                     {/* Dropdown/Modal */}
                     <div className={`
                       ${/* Mobile: modal style */ ''}
-                      sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:w-64 sm:rounded-xl sm:shadow-xl
+                      sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:w-64 sm:rounded-xl sm:shadow-xl sm:z-50
                       ${/* Mobile: full screen modal */ ''}
                       fixed sm:relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:transform-none
                       w-[90vw] max-w-sm sm:max-w-none h-auto max-h-[70vh] sm:max-h-64
@@ -492,7 +511,7 @@ export default function StockPage() {
                       
                       <button
                         onClick={() => handleCategorySelect(null)}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm border-b border-gray-100"
+                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 border-b border-gray-100"
                       >
                         Tümü
                       </button>
@@ -500,7 +519,7 @@ export default function StockPage() {
                         <button
                           key={category.key}
                           onClick={() => handleCategorySelect(category.key)}
-                          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm"
+                          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900"
                         >
                           {category.key}
                         </button>
@@ -526,14 +545,14 @@ export default function StockPage() {
                     <>
                       {/* Mobile backdrop */}
                       <div 
-                        className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden" 
+                        className="fixed inset-0 bg-gray-800 bg-opacity-75 z-40 sm:hidden" 
                         onClick={() => setShowSubcategoryDropdown(false)}
                       />
                       
                       {/* Dropdown/Modal */}
                       <div className={`
                         ${/* Mobile: modal style */ ''}
-                        sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:w-64 sm:rounded-xl sm:shadow-xl
+                        sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:w-64 sm:rounded-xl sm:shadow-xl sm:z-50
                         ${/* Mobile: full screen modal */ ''}
                         fixed sm:relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:transform-none
                         w-[90vw] max-w-sm sm:max-w-none h-auto max-h-[70vh] sm:max-h-64
@@ -554,7 +573,7 @@ export default function StockPage() {
                         
                         <button
                           onClick={() => handleSubcategorySelect(null)}
-                          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm border-b border-gray-100"
+                          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 border-b border-gray-100"
                         >
                           Tümü
                         </button>
@@ -562,7 +581,7 @@ export default function StockPage() {
                           <button
                             key={subcategory}
                             onClick={() => handleSubcategorySelect(subcategory)}
-                            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm"
+                            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900"
                           >
                             {subcategory}
                           </button>
@@ -589,14 +608,14 @@ export default function StockPage() {
                     <>
                       {/* Mobile backdrop */}
                       <div 
-                        className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden" 
+                        className="fixed inset-0 bg-gray-800 bg-opacity-75 z-40 sm:hidden" 
                         onClick={() => setShowSubSubcategoryDropdown(false)}
                       />
                       
                       {/* Dropdown/Modal */}
                       <div className={`
                         ${/* Mobile: modal style */ ''}
-                        sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:w-64 sm:rounded-xl sm:shadow-xl
+                        sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:w-64 sm:rounded-xl sm:shadow-xl sm:z-50
                         ${/* Mobile: full screen modal */ ''}
                         fixed sm:relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:transform-none
                         w-[90vw] max-w-sm sm:max-w-none h-auto max-h-[70vh] sm:max-h-64
@@ -617,7 +636,7 @@ export default function StockPage() {
                         
                         <button
                           onClick={() => handleSubSubcategorySelect(null)}
-                          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm border-b border-gray-100"
+                          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900 border-b border-gray-100"
                         >
                           Tümü
                         </button>
@@ -625,7 +644,7 @@ export default function StockPage() {
                           <button
                             key={subSubcategory}
                             onClick={() => handleSubSubcategorySelect(subSubcategory)}
-                            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm"
+                            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-sm text-gray-900"
                           >
                             {subSubcategory}
                           </button>
@@ -671,7 +690,7 @@ export default function StockPage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-0 sm:space-y-6">
+          <div className="space-y-0 sm:space-y-4">
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12 sm:py-16 px-4">
                 <Package className="w-16 h-16 sm:w-20 sm:h-20 text-gray-300 mx-auto mb-4 sm:mb-6" />
@@ -936,7 +955,7 @@ const UpdateQuantityDialog: React.FC<UpdateQuantityDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl mx-4">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <h3 className="text-lg sm:text-xl font-bold text-gray-900 pr-4">
