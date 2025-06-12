@@ -412,12 +412,21 @@ export default function ListProductForm() {
 
       try {
         // 1️⃣ fetch seller info from shops/{shopId}/seller_info/info
-        let sellerInfo: any = null;
+        interface SellerInfo {
+          phone: string;
+          region: string;
+          address: string;
+          ibanOwnerName: string;
+          ibanOwnerSurname: string;
+          iban: string;
+        }
+        
+        let sellerInfo: SellerInfo | null = null;
         if (selectedShop?.id) {
           const sellerRef = doc(db, "shops", selectedShop.id, "seller_info", "info");
           const snap = await getDoc(sellerRef);
           if (snap.exists()) {
-            sellerInfo = snap.data();
+            sellerInfo = snap.data() as SellerInfo;
           }
         }
   
@@ -426,7 +435,7 @@ export default function ListProductForm() {
           const user = auth.currentUser;
           if (user) {
             const userSnap = await getDoc(doc(db, "users", user.uid));
-            sellerInfo = userSnap.exists() ? userSnap.data()?.sellerInfo : null;
+            sellerInfo = userSnap.exists() ? (userSnap.data()?.sellerInfo as SellerInfo) : null;
           }
         }
   
