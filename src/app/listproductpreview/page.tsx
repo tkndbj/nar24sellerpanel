@@ -57,6 +57,21 @@ const [user, setUser] = useState<User|null>(null)
   }, [])
 
   useEffect(() => {
+    if (!initializing && !user) {
+      router.push("/")
+    }
+  }, [initializing, user, router])
+  
+  // 2️⃣ Show a loading screen until we know the auth state
+  if (initializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Checking authentication…</p>
+      </div>
+    )
+  }
+
+  useEffect(() => {
     const savedData = sessionStorage.getItem("productPreviewData");
     if (savedData) {
       try {
@@ -142,6 +157,11 @@ const [user, setUser] = useState<User|null>(null)
  };
 
  const handleConfirmAndList = async () => {
+  if (!uid) {
+    // shouldn't happen, but defend anyway
+    alert("Lütfen önce giriş yapın.")
+    return
+  }
 
         setIsLoading(true);
         try {
