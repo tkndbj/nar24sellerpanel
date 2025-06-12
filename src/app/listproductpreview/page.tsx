@@ -205,8 +205,8 @@ export default function ListProductPreview() {
         { quantity: string; imageUrl: string | null }
       > = {};
 
-      // Array to collect all color image URLs
-      const colorImageUrls: string[] = [];
+      // Build colorImages for Flutter (Map<String, List<String>>)
+      const colorImages: Record<string, string[]> = {};
 
       // Build colorQuantities for inventory management
       const colorQuantities: Record<string, number> = {};
@@ -221,26 +221,24 @@ export default function ListProductPreview() {
           await uploadBytes(colRef, info.image);
           imageUrl = await getDownloadURL(colRef);
 
-          // Add color image URLs to the main array
+          // Add to colorImages in Flutter format
           if (imageUrl) {
-            colorImageUrls.push(imageUrl);
+            colorImages[color] = [imageUrl]; // Flutter expects array of URLs
           }
         }
+
         selectedColorsPayload[color] = {
           quantity: info.quantity,
           imageUrl,
         };
 
         // Add to colorQuantities
-        if (info.quantity) {
-          colorQuantities[color] = parseInt(info.quantity) || 0;
+        if (info.quantity && parseInt(info.quantity) > 0) {
+          colorQuantities[color] = parseInt(info.quantity);
         }
       }
 
-      // 4️⃣ Combine main images + color images into single imageUrls array
-      const allImageUrls = [...mainImageUrls, ...colorImageUrls];
-
-      // 5️⃣ Create searchIndex for searchability
+      // 4️⃣ Create searchIndex as array (Flutter expects List<String>)
       const searchTerms = [
         productData.title.toLowerCase(),
         productData.description.toLowerCase(),
@@ -252,9 +250,9 @@ export default function ListProductPreview() {
         ...Object.keys(productData.selectedColors).map((c) => c.toLowerCase()),
       ].filter((term) => term.trim().length > 0);
 
-      const searchIndex = Array.from(new Set(searchTerms)).join(" ");
+      const searchIndexArray = Array.from(new Set(searchTerms));
 
-      // 6️⃣ Get user info for sellerName
+      // 5️⃣ Get user info for sellerName
       const userDoc = await getDoc(doc(db, "users", uid));
       const userData = userDoc.exists() ? userDoc.data() : {};
       const sellerName =
@@ -263,101 +261,152 @@ export default function ListProductPreview() {
         productData.ibanOwnerName ||
         "Unknown Seller";
 
-      // 7️⃣ Build complete Firestore payload matching Flutter structure
+      // 6️⃣ Helper functions to ensure correct data types
+      const ensureStringArray = (value: unknown): string[] => {
+        if (!value) return [];
+        if (Array.isArray(value)) return value.map((v) => String(v));
+        if (typeof value === "string") return value ? [value] : [];
+        return [];
+      };
+
+      const ensureString = (value: unknown): string => {
+        return value ? String(value) : "";
+      };
+
+      const ensureNumber = (value: unknown): number => {
+        const num = parseFloat(value as string);
+        return isNaN(num) ? 0 : num;
+      };
+
+      const ensureInteger = (value: unknown): number => {
+        const num = parseInt(value as string);
+        return isNaN(num) ? 0 : num;
+      };
+
+      // 7️⃣ Build complete Firestore payload matching Flutter Product model EXACTLY
       const applicationData = {
-        // Basic product info
-        productName: productData.title,
-        title: productData.title,
-        description: productData.description,
-        price: parseFloat(productData.price),
-        quantity: parseInt(productData.quantity),
-        condition: productData.condition,
-        deliveryOption: productData.deliveryOption,
+        // Core identification
+        id: productId,
+        productName: ensureString(productData.title),
+        description: ensureString(productData.description),
+
+        // Pricing (Flutter expects double)
+        price: ensureNumber(productData.price),
         currency: "TL",
+        originalPrice: null, // Not used in listing form
+        discountPercentage: null, // Not used in listing form
+        discountThreshold: null, // Not used in listing form
 
-        // Categories
-        category: productData.category,
-        subcategory: productData.subcategory,
-        subsubcategory: productData.subsubcategory,
-        brand: productData.brand,
+        // Product details
+        condition: ensureString(productData.condition),
+        brandModel: ensureString(productData.brand), // Flutter uses 'brandModel' field
 
-        // Jewelry specific
-        jewelryType: productData.jewelryType || "",
-        jewelryMaterials: productData.selectedMaterials || [],
-
-        // Clothing specific
-        clothingSizes: productData.selectedClothingSizes || [],
-        clothingFit: productData.selectedClothingFit || "",
-        clothingType: productData.selectedClothingType || "",
-
-        // Pant specific
-        pantSizes: productData.selectedPantSizes || [],
-
-        // Footwear specific
-        footwearGender: productData.selectedFootwearGender || "",
-        footwearSizes: productData.selectedFootwearSizes || [],
-
-        // Gender and colors
-        gender: productData.selectedGender || "",
-        selectedColors: selectedColorsPayload,
-        colorQuantities: colorQuantities,
-
-        // Media
-        imageUrls: allImageUrls,
+        // Media arrays
+        imageUrls: mainImageUrls, // Already array of strings
         videoUrl: videoUrl,
+        colorImages: colorImages, // Map<String, List<String>>
 
-        // Seller info
-        sellerName: sellerName,
-        phone: productData.phone,
-        region: productData.region,
-        address: productData.address,
-        ibanOwnerName: productData.ibanOwnerName,
-        ibanOwnerSurname: productData.ibanOwnerSurname,
-        iban: productData.iban,
+        // Ratings and reviews
+        averageRating: 0.0,
+        reviewCount: 0,
 
-        // IDs and ownership
+        // User and ownership
         userId: uid,
         ownerId: uid,
         shopId: selectedShop.id,
         ilan_no: productId,
-        id: productId,
+        sellerName: sellerName,
 
-        // 🔥 CRITICAL: All the missing fields that Flutter includes
-        averageRating: 0.0,
-        reviewCount: 0,
+        // Categories
+        category: ensureString(productData.category),
+        subcategory: ensureString(productData.subcategory),
+        subsubcategory: ensureString(productData.subsubcategory),
+
+        // Inventory
+        quantity: ensureInteger(productData.quantity),
+        colorQuantities: colorQuantities, // Map<String, int>
         sold: false,
+
+        // Product-specific arrays (ensure they're arrays, not strings)
+        jewelryType: ensureString(productData.jewelryType),
+        jewelryMaterials: ensureStringArray(productData.selectedMaterials),
+        clothingSizes: ensureStringArray(productData.selectedClothingSizes),
+        clothingFit: ensureString(productData.selectedClothingFit),
+        clothingType: ensureString(productData.selectedClothingType),
+        pantSizes: ensureStringArray(productData.selectedPantSizes),
+        footwearGender: ensureString(productData.selectedFootwearGender),
+        footwearSizes: ensureStringArray(productData.selectedFootwearSizes),
+        gender: ensureString(productData.selectedGender),
+
+        // Delivery
+        deliveryOption: ensureString(productData.deliveryOption),
+
+        // Engagement metrics (integers)
+        clickCount: 0,
+        clickCountAtStart: 0,
+        favoritesCount: 0,
+        cartCount: 0,
+        purchaseCount: 0,
+
+        // Boost and ranking
         isFeatured: false,
         isTrending: false,
         isBoosted: false,
         boostedImpressionCount: 0,
         boostImpressionCountAtStart: 0,
         boostClickCountAtStart: 0,
-        rankingScore: 0,
-        paused: false,
+        rankingScore: 0.0, // Flutter expects double
+        dailyClickCount: 0,
+
+        // Timestamps
         boostStartTime: null,
         boostEndTime: null,
-        dailyClickCount: 0,
-        clickCountAtStart: 0,
         lastClickDate: null,
-        searchIndex: searchIndex,
-
-        // Timestamps and sync
         createdAt: serverTimestamp(),
+
+        // Search and status
+        searchIndex: searchIndexArray, // Flutter expects List<String>, not string
+        paused: false,
+        bestSellerRank: null,
+
+        // Admin and sync
         needsSync: true,
         updatedAt: serverTimestamp(),
 
-        // Additional fields that might be needed
-        relatedProductIds: [],
+        // Seller information for admin approval
+        phone: ensureString(productData.phone),
+        region: ensureString(productData.region),
+        address: ensureString(productData.address),
+        ibanOwnerName: ensureString(productData.ibanOwnerName),
+        ibanOwnerSurname: ensureString(productData.ibanOwnerSurname),
+        iban: ensureString(productData.iban),
       };
 
-      // 8️⃣ write to Firestore
+      // 8️⃣ Validate critical fields before saving
+      if (!applicationData.productName) {
+        throw new Error("Product name is required");
+      }
+      if (!applicationData.price || applicationData.price <= 0) {
+        throw new Error("Valid price is required");
+      }
+      if (!applicationData.quantity || applicationData.quantity <= 0) {
+        throw new Error("Valid quantity is required");
+      }
+      if (
+        !applicationData.imageUrls ||
+        applicationData.imageUrls.length === 0
+      ) {
+        throw new Error("At least one image is required");
+      }
+
+      // 9️⃣ Write to Firestore
       await setDoc(doc(db, "product_applications", productId), applicationData);
 
       sessionStorage.removeItem("productPreviewData");
       router.push("/success");
     } catch (err) {
-      console.error(err);
-      alert("Hata oluştu. Lütfen tekrar deneyin.");
+      console.error("Error submitting product:", err);
+      alert("Error submitting product. Please try again.");
     } finally {
       setIsLoading(false);
     }
