@@ -29,6 +29,8 @@ import {
   Sparkles,
   Calendar,
   DollarSign,
+  X,
+  CheckCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -89,6 +91,94 @@ const BOOST_DURATION_OPTIONS = [5, 10, 15, 20, 25, 30, 35]; // minutes
 const BASE_PRICE_PER_PRODUCT = 150.0; // TL per product per day
 const JADE_GREEN = "#00A86B";
 
+// Success Modal Component
+const SuccessModal = ({ 
+  isOpen, 
+  onClose, 
+  data 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  data: BoostResponse['data'] | null;
+}) => {
+  if (!isOpen || !data) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden"
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-6 text-white text-center">
+          <div className="flex justify-center mb-3">
+            <div className="p-3 bg-white/20 rounded-full">
+              <CheckCircle className="w-8 h-8" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold mb-2">🎉 Yükseltme Tamamlandı!</h2>
+          <p className="text-green-100">Ürünleriniz başarıyla yükseltildi!</p>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-gray-600">Yükseltilen ürün sayısı:</span>
+              <span className="font-semibold text-gray-900">{data.boostedItemsCount}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-gray-600">Süre:</span>
+              <span className="font-semibold text-gray-900">{data.boostDuration} dakika</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-gray-600">Toplam maliyet:</span>
+              <span className="font-semibold text-green-600">{data.totalPrice.toFixed(2)} TL</span>
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+            <p className="text-blue-800 text-sm text-center">
+              Ürünleriniz artık öne çıkan bölümde görünecek.
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 pt-0">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onClose}
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
+          >
+            Devam Et
+          </motion.button>
+        </div>
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </motion.div>
+    </div>
+  );
+};
 
 const BoostPage = () => {
   const router = useRouter();
@@ -108,6 +198,8 @@ const BoostPage = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState<BoostResponse['data'] | null>(null);
 
   // Computed values
   const boostDuration = BOOST_DURATION_OPTIONS[selectedDurationIndex];
@@ -140,7 +232,7 @@ const BoostPage = () => {
       const shopProductsDoc = await getDoc(doc(db, "shop_products", productId));
 
       if (!shopProductsDoc.exists()) {
-        throw new Error("Product not found");
+        throw new Error("Ürün bulunamadı");
       }
 
       const data = shopProductsDoc.data() as Product;
@@ -207,17 +299,17 @@ const BoostPage = () => {
   // Process payment and boost products using Cloud Function
   const proceedToPayment = async () => {
     if (!user) {
-      alert("User not authenticated");
+      alert("Kullanıcı kimlik doğrulaması yapılmamış");
       return;
     }
 
     if (!mainProduct && selectedProductIds.length === 0) {
-      alert("No items to boost");
+      alert("Yükseltilecek ürün yok");
       return;
     }
 
     if (!shopId) {
-      alert("Shop ID is required");
+      alert("Mağaza ID'si gerekli");
       return;
     }
 
@@ -249,7 +341,7 @@ const BoostPage = () => {
       }
 
       if (items.length === 0) {
-        alert("No valid items to boost");
+        alert("Yükseltilecek geçerli ürün yok");
         setProcessing(false);
         return;
       }
@@ -269,16 +361,17 @@ const BoostPage = () => {
       console.log("Cloud function response:", result.data);
 
       if (result.data.success) {
-        // Show success dialog
-        showSuccessDialog(result.data.data); // Pass result.data.data instead of result.data
+        // Show success modal
+        setSuccessData(result.data.data);
+        setShowSuccessModal(true);
       } else {
-        throw new Error(result.data.message || "Failed to boost products");
+        throw new Error(result.data.message || "Ürünleri yükseltme başarısız");
       }
     } catch (error) {
       console.error("Error processing boost:", error);
       
       // Extract error message
-      let errorMessage = "Error processing boost. Please try again.";
+      let errorMessage = "Yükseltme işlenirken hata oluştu. Lütfen tekrar deneyin.";
 if (error && typeof error === 'object' && 'message' in error) {
   errorMessage = (error as Error).message;
 }
@@ -289,28 +382,12 @@ if (error && typeof error === 'object' && 'message' in error) {
     }
   };
 
-  // Success dialog
-  const showSuccessDialog = (data: BoostResponse['data']) => {
-    // Enhanced success dialog with more details
-    const message = `🎉 Boost Completed!
-
-Successfully boosted your products!
-
-Details:
-• ${data.boostedItemsCount} items boosted successfully
-• Duration: ${data.boostDuration} minutes
-• Total cost: ${data.totalPrice.toFixed(2)} TL
-
-Your products will now appear in the featured section.
-
-Click OK to continue.`;
-
-    const confirmed = window.confirm(message);
-    
-    if (confirmed) {
-      // Since web app only has shop products, always go to ads page
-      router.push("/ads");
-    }
+  // Handle success modal close
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    setSuccessData(null);
+    // Since web app only has shop products, always go to ads page
+    router.push("/ads");
   };
 
   // Toggle product selection
@@ -327,7 +404,7 @@ Click OK to continue.`;
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading boost options...</p>
+          <p className="text-gray-600">Yükseltme seçenekleri yükleniyor...</p>
         </div>
       </div>
     );
@@ -335,6 +412,13 @@ Click OK to continue.`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleSuccessModalClose}
+        data={successData}
+      />
+
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -348,15 +432,15 @@ Click OK to continue.`;
               </button>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent">
-                  Boost Products
+                  Ürünleri Yükselt
                 </h1>
-                <p className="text-gray-600 text-sm">Increase visibility and reach</p>
+                <p className="text-gray-600 text-sm">Görünürlüğü ve erişimi artırın</p>
               </div>
             </div>
             
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Zap className="w-4 h-4 text-yellow-500" />
-              <span className="font-medium">{itemCount} item{itemCount !== 1 ? 's' : ''} selected</span>
+              <span className="font-medium">{itemCount} ürün seçildi</span>
             </div>
           </div>
         </div>
@@ -376,7 +460,7 @@ Click OK to continue.`;
                   <div className="p-2 bg-blue-50 rounded-lg">
                     <Target className="w-5 h-5 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Primary Product</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Ana Ürün</h3>
                 </div>
                 
                 <div className="flex gap-4">
@@ -431,11 +515,11 @@ Click OK to continue.`;
                   <div className="p-2 bg-green-50 rounded-lg">
                     <TrendingUp className="w-5 h-5 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Add More Products</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Daha Fazla Ürün Ekle</h3>
                 </div>
                 
                 <div className="text-sm text-gray-600">
-                  {selectedProductIds.length} of {filteredProducts.length} selected
+                  {selectedProductIds.length} / {filteredProducts.length} seçildi
                 </div>
               </div>
 
@@ -444,7 +528,7 @@ Click OK to continue.`;
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="Ürün ara..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -456,7 +540,7 @@ Click OK to continue.`;
                 {filteredProducts.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Sparkles className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>No products available to boost</p>
+                    <p>Yükseltilecek ürün bulunmuyor</p>
                   </div>
                 ) : (
                   filteredProducts.map((product) => (
@@ -516,13 +600,13 @@ Click OK to continue.`;
                 <div className="p-2 bg-purple-50 rounded-lg">
                   <Clock className="w-5 h-5 text-purple-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Boost Duration</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Yükseltme Süresi</h3>
               </div>
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-sm text-gray-600">
-                  <span>5 minutes</span>
-                  <span>35 minutes</span>
+                  <span>5 dakika</span>
+                  <span>35 dakika</span>
                 </div>
                 
                 <input
@@ -540,7 +624,7 @@ Click OK to continue.`;
                 <div className="text-center">
                   <span className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full text-sm font-medium text-gray-700">
                     <Calendar className="w-4 h-4" />
-                    {boostDuration} minutes
+                    {boostDuration} dakika
                   </span>
                 </div>
               </div>
@@ -559,25 +643,25 @@ Click OK to continue.`;
                 <div className="p-2 bg-orange-100 rounded-lg">
                   <DollarSign className="w-5 h-5 text-orange-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Pricing Summary</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Fiyat Özeti</h3>
               </div>
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">Base price per product</span>
+                  <span className="text-gray-600">Ürün başına temel fiyat</span>
                   <span className="font-medium">{BASE_PRICE_PER_PRODUCT} TL</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">Duration</span>
-                  <span className="font-medium">{boostDuration} minutes</span>
+                  <span className="text-gray-600">Süre</span>
+                  <span className="font-medium">{boostDuration} dakika</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">Number of products</span>
+                  <span className="text-gray-600">Ürün sayısı</span>
                   <span className="font-medium">{itemCount}</span>
                 </div>
                 <div className="border-t border-orange-200 pt-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-gray-900">Total Price</span>
+                    <span className="text-lg font-semibold text-gray-900">Toplam Fiyat</span>
                     <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
                       {totalPrice.toFixed(2)} TL
                     </span>
@@ -600,18 +684,18 @@ Click OK to continue.`;
             className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-semibold text-lg transition-all ${
               processing || itemCount === 0
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-600/30"
+                : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-600/30"
             }`}
           >
             {processing ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                Processing...
+                İşleniyor...
               </>
             ) : (
               <>
                 <CreditCard className="w-5 h-5" />
-                Complete Payment ({totalPrice.toFixed(2)} TL)
+                Ödemeyi Tamamla ({totalPrice.toFixed(2)} TL)
               </>
             )}
           </motion.button>

@@ -510,7 +510,7 @@ const ProductCard = React.memo(({ product, shopId }: { product: Product; shopId?
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group relative bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300"
+      className="group relative bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full"
     >
       {/* Boost Badge */}
       {product.isBoosted && (
@@ -527,6 +527,7 @@ const ProductCard = React.memo(({ product, shopId }: { product: Product; shopId?
             src={product.imageUrls[0]}
             alt={product.productName}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
@@ -536,8 +537,8 @@ const ProductCard = React.memo(({ product, shopId }: { product: Product; shopId?
         )}
       </div>
 
-      {/* Product Info */}
-      <div className="p-4">
+      {/* Product Info - Flex grow to fill space */}
+      <div className="p-4 flex flex-col flex-grow">
         <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
           {product.productName}
         </h3>
@@ -564,37 +565,27 @@ const ProductCard = React.memo(({ product, shopId }: { product: Product; shopId?
           </div>
         </div>
 
-        {/* Timer or Action Button */}
-        {shouldShowTimer ? (
-          <div className="flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl">
-            <Clock className="w-5 h-5 text-green-600 animate-pulse" />
-            <span className="text-base font-bold text-green-700">{timeLeft}</span>
-          </div>
-        ) : product.isBoosted && timeLeft === "Expired" ? (
-          <div className="space-y-2">
-            <div className="flex items-center justify-center gap-2 py-2 px-3 bg-red-50 border border-red-200 rounded-xl">
-              <Clock className="w-4 h-4 text-red-600" />
-              <span className="text-sm font-medium text-red-700">Boost Expired</span>
+        {/* Flex spacer to push content to bottom */}
+        <div className="flex-grow"></div>
+
+        {/* Timer or Action Button - Always at bottom */}
+        <div className="mt-auto">
+          {shouldShowTimer ? (
+            <div className="flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl">
+              <Clock className="w-5 h-5 text-green-600 animate-pulse" />
+              <span className="text-base font-bold text-green-700">{timeLeft}</span>
             </div>
+          ) : (
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleBoostProduct} 
-              className="w-full py-2 px-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
+              className="w-full py-2 px-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-indigo-800 transition-all shadow-md"
             >
-              Boost Again
+              Ürünü Öne Çıkar
             </motion.button>
-          </div>
-        ) : (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleBoostProduct} 
-            className="w-full py-2 px-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
-          >
-            Ürünü Öne Çıkar
-          </motion.button>
-        )}
+          )}
+        </div>
       </div>
     </motion.div>
   );
