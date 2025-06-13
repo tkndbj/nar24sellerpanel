@@ -82,7 +82,7 @@ export default function DashboardPage() {
     { label: "Products", href: "/products", icon: Package },
     { label: "Orders", href: "/orders", icon: FileText },
     { label: "Stock", href: "/stock", icon: Warehouse },
-    { label: "Ads", href: "/dashboard/ads", icon: Megaphone },
+    { label: "Ads", href: "/ads", icon: Megaphone },
     { label: "Reviews", href: "/dashboard/reviews", icon: Star },
     {
       label: "Product Questions",
