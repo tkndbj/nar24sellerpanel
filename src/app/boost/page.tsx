@@ -18,8 +18,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import {
   ArrowLeft,
   CreditCard,
-  Clock,
-  CheckCircle2,
+  Clock,  
   Search,
   Zap,
   TrendingUp,
@@ -31,30 +30,30 @@ import {
   Calendar,
   DollarSign,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
 
 // Types
 interface Product {
-  id: string;
-  productName: string;
-  brandModel: string;
-  price: number;
-  currency: string;
-  imageUrls: string[];
-  category?: string;
-  subcategory?: string;
-  userId?: string;
-  shopId?: string;
-  clickCount: number;
-  cartCount: number;
-  favoritesCount: number;
-  purchaseCount: number;
-  boostedImpressionCount?: number;
-  isBoosted?: boolean;
-  boostEndTime?: any;
-  collection?: string;
-}
+    id: string;
+    productName: string;
+    brandModel: string;
+    price: number;
+    currency: string;
+    imageUrls: string[];
+    category?: string;
+    subcategory?: string;
+    userId?: string;
+    shopId?: string;
+    clickCount: number;
+    cartCount: number;
+    favoritesCount: number;
+    purchaseCount: number;
+    boostedImpressionCount?: number;
+    isBoosted?: boolean;
+    boostEndTime?: import('firebase/firestore').Timestamp; // Replace any with proper type
+    collection?: string;
+  }
 
 interface BoostRequest {
   items: Array<{
@@ -68,28 +67,28 @@ interface BoostRequest {
 }
 
 interface BoostResponse {
-  success: boolean;
-  message: string;
-  data: {
-    boostedItemsCount: number;
-    totalRequestedItems: number;
-    boostDuration: number;
-    boostStartTime: any;
-    boostEndTime: any;
-    totalPrice: number;
-    pricePerItem: number;
-    boostedItems: Array<{
-      itemId: string;
-      collection: string;
-      shopId?: string;
-    }>;
-  };
-}
+    success: boolean;
+    message: string;
+    data: {
+      boostedItemsCount: number;
+      totalRequestedItems: number;
+      boostDuration: number;
+      boostStartTime: import('firebase/firestore').Timestamp; // Replace any
+      boostEndTime: import('firebase/firestore').Timestamp; // Replace any
+      totalPrice: number;
+      pricePerItem: number;
+      boostedItems: Array<{
+        itemId: string;
+        collection: string;
+        shopId?: string;
+      }>;
+    };
+  }
 
 const BOOST_DURATION_OPTIONS = [5, 10, 15, 20, 25, 30, 35]; // minutes
 const BASE_PRICE_PER_PRODUCT = 150.0; // TL per product per day
 const JADE_GREEN = "#00A86B";
-const CORAL_COLOR = "#FF7F50";
+
 
 const BoostPage = () => {
   const router = useRouter();
@@ -98,8 +97,7 @@ const BoostPage = () => {
   const { selectedShop } = useShop();
 
   // URL Parameters
-  const productId = searchParams.get("productId");
-  const isShopContext = searchParams.get("isShopContext") === "true";
+  const productId = searchParams.get("productId");  
   const shopId = searchParams.get("shopId") || selectedShop?.id;
 
   // State
@@ -200,11 +198,11 @@ const BoostPage = () => {
       await Promise.all(promises);
       setLoading(false);
     };
-
+  
     if (user) {
       initialize();
     }
-  }, [user, fetchMainProduct, fetchUnboostedProducts]);
+  }, [user, productId, fetchMainProduct, fetchUnboostedProducts]);
 
   // Process payment and boost products using Cloud Function
   const proceedToPayment = async () => {
@@ -281,9 +279,9 @@ const BoostPage = () => {
       
       // Extract error message
       let errorMessage = "Error processing boost. Please try again.";
-      if (error && typeof error === 'object' && 'message' in error) {
-        errorMessage = (error as any).message;
-      }
+if (error && typeof error === 'object' && 'message' in error) {
+  errorMessage = (error as Error).message;
+}
       
       alert(errorMessage);
     } finally {

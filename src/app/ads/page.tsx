@@ -54,12 +54,7 @@ interface Product {
   shopId?: string;
 }
 
-interface MetricData {
-  label: string;
-  value: number;
-  color: string;
-  icon: React.ReactNode;
-}
+
 
 // Sample category data (you'll need to implement this based on your actual data)
 const SAMPLE_CATEGORIES = [
@@ -189,37 +184,13 @@ const AdsPage = () => {
     if (selectedShop) {
       fetchProducts();
     }
-  }, [selectedShop]);
+  }, [selectedShop, fetchProducts]);
 
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
 
-  // Countdown timer for boosted products
-  const useCountdown = (endTime: Date) => {
-    const [timeLeft, setTimeLeft] = useState("");
-
-    useEffect(() => {
-      const timer = setInterval(() => {
-        const now = new Date().getTime();
-        const distance = endTime.getTime() - now;
-
-        if (distance < 0) {
-          setTimeLeft("Expired");
-          clearInterval(timer);
-        } else {
-          const hours = Math.floor(distance / (1000 * 60 * 60));
-          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-          setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-        }
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }, [endTime]);
-
-    return timeLeft;
-  };
+ 
 
   if (loadingShops) {
     return (
@@ -459,34 +430,46 @@ const AdsPage = () => {
 
 // Custom hook for countdown timer
 const useCountdown = (endTime: Date) => {
-  const [timeLeft, setTimeLeft] = useState("");
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = endTime.getTime() - now;
-
-      if (distance < 0) {
-        setTimeLeft("Expired");
-        clearInterval(timer);
-      } else {
-        const hours = Math.floor(distance / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    const [timeLeft, setTimeLeft] = useState("");
+  
+    useEffect(() => {
+      // Handle invalid dates
+      if (!endTime || endTime.getTime() === 0) {
+        setTimeLeft("");
+        return;
       }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [endTime]);
-
-  return timeLeft;
-};
+  
+      const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = endTime.getTime() - now;
+  
+        if (distance < 0) {
+          setTimeLeft("Expired");
+          clearInterval(timer);
+        } else {
+          const hours = Math.floor(distance / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+          setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        }
+      }, 1000);
+  
+      return () => clearInterval(timer);
+    }, [endTime]);
+  
+    return timeLeft;
+  };
 
 // Product Card Component
 const ProductCard = ({ product, shopId }: { product: Product; shopId?: string }) => {
     const router = useRouter();
-    const timeLeft = product.boostEndTime ? useCountdown(product.boostEndTime.toDate()) : "";
+    
+    // Always call the hook, but handle the conditional logic inside
+    const endTime = product.boostEndTime ? product.boostEndTime.toDate() : new Date(0);
+    const timeLeft = useCountdown(endTime);
+    
+    // Only show timer if product is actually boosted and has valid end time
+    const shouldShowTimer = product.isBoosted && product.boostEndTime && timeLeft !== "Expired";
   
     const handleBoostProduct = () => {
       const params = new URLSearchParams({
@@ -557,21 +540,21 @@ const ProductCard = ({ product, shopId }: { product: Product; shopId?: string })
         </div>
 
         {/* Action Button or Timer */}
-        {product.isBoosted && timeLeft && timeLeft !== "Expired" ? (
-          <div className="flex items-center justify-center gap-2 py-2 px-3 bg-green-50 border border-green-200 rounded-xl">
-            <Clock className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-green-700">{timeLeft}</span>
-          </div>
-        ) : (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleBoostProduct} 
-            className="w-full py-2 px-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
-          >
-            Ürünü Öne Çıkar
-          </motion.button>
-        )}
+{shouldShowTimer ? (
+  <div className="flex items-center justify-center gap-2 py-2 px-3 bg-green-50 border border-green-200 rounded-xl">
+    <Clock className="w-4 h-4 text-green-600" />
+    <span className="text-sm font-medium text-green-700">{timeLeft}</span>
+  </div>
+) : (
+  <motion.button
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={handleBoostProduct} 
+    className="w-full py-2 px-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
+  >
+    Ürünü Öne Çıkar
+  </motion.button>
+)}
       </div>
     </motion.div>
   );
